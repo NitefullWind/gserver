@@ -1,0 +1,8 @@
+bin/
+lib/
+build/
+debug/
+release/
+include/tinyserver/
+.vscode/
+*.swp
