@@ -1,5 +1,8 @@
 add_executable(gserver
 	main.cpp
+	Controller.cpp
+	PlayerSession.cpp
+	Room.cpp
 )
 target_link_libraries(gserver
 	tinyserver
