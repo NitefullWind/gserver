@@ -13,10 +13,12 @@ class TcpConnection;
 
 namespace gserver
 {
+	class Controller;
+
 	class PlayerSession : private Uncopyable
 	{
 	public:
-		explicit PlayerSession(std::shared_ptr<tinyserver::TcpConnection> connection);
+		explicit PlayerSession(Controller *ctrl, std::shared_ptr<tinyserver::TcpConnection> connection);
 		~PlayerSession();
 
 		void setName(const std::string& name) { _name = name; }
@@ -26,9 +28,15 @@ namespace gserver
 		uint64_t sessionId() const { return _tcpConnection->index(); }
 
 		const std::shared_ptr<tinyserver::TcpConnection>& tcpConnction() const { return _tcpConnection; }
+
+		void joinRoom(size_t roomId);
+		void exitRoom();
+		size_t roomId() const { return _roomId; }
 	private:
+		Controller *_controller;
 		std::string _name;
 		std::shared_ptr<tinyserver::TcpConnection> _tcpConnection;
+		size_t _roomId;
 	};
 	
 }

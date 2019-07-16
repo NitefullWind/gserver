@@ -17,6 +17,7 @@ namespace gserver
 		~Controller();
 
 		void addPlayerSession(std::shared_ptr<PlayerSession> playerSessionPtr);
+		void removePlayerSession(uint64_t id) { _playerSessionMap.erase(id); }
 		std::shared_ptr<PlayerSession> getPlayerSessionById(uint64_t id) const {
 			try {
 				return _playerSessionMap.at(id);

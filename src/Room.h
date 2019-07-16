@@ -35,6 +35,10 @@ namespace gserver
 
 		void addPlayer(uint64_t playerId) { _playerIdSet.insert(playerId); }
 		size_t playerCounter() const { return _playerIdSet.size(); }
+
+		void removePlayer(uint64_t playerId) { _playerIdSet.erase(playerId); }
+
+		bool hasPlayer(uint64_t playerId) { return (_playerIdSet.find(playerId) != _playerIdSet.end()); }
 	private:
 		uint64_t _id;
 		std::string _name;
