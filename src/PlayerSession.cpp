@@ -7,10 +7,10 @@
 
 using namespace gserver;
 
-PlayerSession::PlayerSession(Controller *ctrl, std::shared_ptr<tinyserver::TcpConnection> connection) :
+PlayerSession::PlayerSession(Controller *ctrl, std::weak_ptr<tinyserver::TcpConnection> connection) :
 	_controller(ctrl),
-	_tcpConnection(connection),
-	_roomId(-1)
+	_sessionId(connection.lock()->index()),
+	_tcpConnection(connection)
 {
 }
 
@@ -18,20 +18,22 @@ PlayerSession::~PlayerSession()
 {
 }
 
-void PlayerSession::joinRoom(size_t roomId)
+void PlayerSession::joinRoom(std::weak_ptr<Room> roomPtr)
 {
-	auto room = _controller->getRoomById(roomId);
+	auto room = roomPtr.lock();
 	if(room) {
-		_roomId = room->id();
+		if(_roomPtr.use_count() != 0) {		// 退出已在的房间
+			exitRoom();
+		}
+		_roomPtr = roomPtr;
 		room->addPlayer(sessionId());
 	}
 }
 
 void PlayerSession::exitRoom()
 {
-	auto room = _controller->getRoomById(_roomId);
+	auto room = _roomPtr.lock();
 	if(room) {
-		_roomId = -1;
 		room->removePlayer(sessionId());
 	}
 }

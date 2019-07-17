@@ -15,6 +15,7 @@ enum Command
 {
 	CMD_INVILID,
 	CMD_JOINROOM = 100,
+	CMD_EXITROOM = 101,
 };
 
 typedef struct
@@ -73,13 +74,25 @@ void onNewMessage(const TcpConnectionPtr &tcpConnPtr, Buffer *buffer)
 				{
 				case CMD_JOINROOM:
 					{
-						auto roomId = buffer->readInt64();
-						TLOG_DEBUG("Command join room: " << roomId);
-						auto room = gController.getRoomById(roomId);
+						if(buffer->readableBytes() < sizeof(uint64_t)) {
+							TLOG_DEBUG("Invalid data len");
+							buffer->retrieveAll();
+						} else {
+							auto roomId = buffer->readInt64();
+							TLOG_DEBUG("Command join room: " << roomId);
+							auto room = gController.getRoomById(roomId);
+							auto ps = gController.getPlayerSessionById(tcpConnPtr->index());
+							if(room != nullptr && ps != nullptr) {
+								ps->joinRoom(room);
+							}
+						}
+					}
+					break;
+				case CMD_EXITROOM:
+					{
 						auto ps = gController.getPlayerSessionById(tcpConnPtr->index());
-						if(room != nullptr && ps != nullptr) {
-							ps->joinRoom(room->id());
-							TLOG_DEBUG("room players:" << room->playerCounter());
+						if(ps != nullptr) {
+							ps->exitRoom();
 						}
 					}
 					break;
