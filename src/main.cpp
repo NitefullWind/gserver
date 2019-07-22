@@ -32,15 +32,15 @@ Controller gController;
 
 void onNewClient(const TcpConnectionPtr& tcpConnPtr)
 {
-	TLOG_DEBUG("Connection: " << tcpConnPtr->index());
+	TLOG_DEBUG("Connection: " << tcpConnPtr->id());
 	std::shared_ptr<PlayerSession> ps(new PlayerSession(&gController, tcpConnPtr));
 	gController.addPlayerSession(ps);
 }
 
 void onDisconnection(const TcpConnectionPtr& tcpConnPtr)
 {
-	TLOG_DEBUG("Disconnection: " << tcpConnPtr->index());
-	auto ps = gController.getPlayerSessionById(tcpConnPtr->index());
+	TLOG_DEBUG("Disconnection: " << tcpConnPtr->id());
+	auto ps = gController.getPlayerSessionById(tcpConnPtr->id());
 	if(ps) {
 		ps->exitRoom();
 		gController.removePlayerSession(ps->sessionId());
@@ -74,14 +74,14 @@ void onNewMessage(const TcpConnectionPtr &tcpConnPtr, Buffer *buffer)
 				{
 				case CMD_JOINROOM:
 					{
-						if(buffer->readableBytes() < sizeof(uint64_t)) {
+						if(buffer->readableBytes() < sizeof(uint32_t)) {
 							TLOG_DEBUG("Invalid data len");
 							buffer->retrieveAll();
 						} else {
-							auto roomId = buffer->readInt64();
+							auto roomId = buffer->readInt32();
 							TLOG_DEBUG("Command join room: " << roomId);
 							auto room = gController.getRoomById(roomId);
-							auto ps = gController.getPlayerSessionById(tcpConnPtr->index());
+							auto ps = gController.getPlayerSessionById(tcpConnPtr->id());
 							if(room != nullptr && ps != nullptr) {
 								ps->joinRoom(room);
 							}
@@ -90,7 +90,7 @@ void onNewMessage(const TcpConnectionPtr &tcpConnPtr, Buffer *buffer)
 					break;
 				case CMD_EXITROOM:
 					{
-						auto ps = gController.getPlayerSessionById(tcpConnPtr->index());
+						auto ps = gController.getPlayerSessionById(tcpConnPtr->id());
 						if(ps != nullptr) {
 							ps->exitRoom();
 						}

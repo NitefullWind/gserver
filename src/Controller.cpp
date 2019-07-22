@@ -20,7 +20,7 @@ Controller::~Controller()
 
 void Controller::addPlayerSession(std::shared_ptr<PlayerSession> playerSessionPtr)
 {
-	uint64_t id = playerSessionPtr->sessionId();
+	auto id = playerSessionPtr->sessionId();
 	{
 		std::lock_guard<std::mutex> lk(_mutex);
 		assert(_playerSessionMap.find(id) == _playerSessionMap.end());
@@ -31,7 +31,7 @@ void Controller::addPlayerSession(std::shared_ptr<PlayerSession> playerSessionPt
 std::shared_ptr<Room> Controller::creatRoom()
 {
 	std::shared_ptr<Room> roomPtr(new Room());
-	uint64_t id = 0;
+	int id = 0;
 	{
 		std::lock_guard<std::mutex> lk(_mutex);
 		id = _roomIndex++;

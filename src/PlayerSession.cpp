@@ -9,7 +9,7 @@ using namespace gserver;
 
 PlayerSession::PlayerSession(Controller *ctrl, std::weak_ptr<tinyserver::TcpConnection> connection) :
 	_controller(ctrl),
-	_sessionId(connection.lock()->index()),
+	_sessionId(connection.lock()->id()),
 	_tcpConnection(connection)
 {
 }

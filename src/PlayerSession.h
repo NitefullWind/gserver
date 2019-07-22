@@ -26,14 +26,14 @@ namespace gserver
 		void setName(std::string&& name) { _name = std::move(name); }
 		std::string name() const { return _name; }
 
-		uint64_t sessionId() const { return _sessionId; }
+		std::string sessionId() const { return _sessionId; }
 
 		void joinRoom(std::weak_ptr<Room> roomPtr);
 		void exitRoom();
 		// size_t roomId() const { return _roomId; }
 	private:
 		Controller *_controller;
-		size_t _sessionId;
+		std::string _sessionId;
 		std::string _name;
 		std::weak_ptr<tinyserver::TcpConnection> _tcpConnection;
 		std::weak_ptr<Room> _roomPtr;

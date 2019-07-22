@@ -17,8 +17,8 @@ namespace gserver
 		~Controller();
 
 		void addPlayerSession(std::shared_ptr<PlayerSession> playerSessionPtr);
-		void removePlayerSession(uint64_t id) { _playerSessionMap.erase(id); }
-		std::shared_ptr<PlayerSession> getPlayerSessionById(uint64_t id) const {
+		void removePlayerSession(std::string id) { _playerSessionMap.erase(id); }
+		std::shared_ptr<PlayerSession> getPlayerSessionById(std::string id) const {
 			try {
 				return _playerSessionMap.at(id);
 			} catch(const std::exception &e) {
@@ -26,7 +26,7 @@ namespace gserver
 			}
 		}
 		std::shared_ptr<Room> creatRoom();
-		std::shared_ptr<Room> getRoomById(uint64_t id)  {
+		std::shared_ptr<Room> getRoomById(int id)  {
 			try {
 				return _roomMap.at(id);
 			} catch(const std::exception &e) {
@@ -35,9 +35,9 @@ namespace gserver
 		}
 	private:
 		std::mutex _mutex;
-		uint64_t _roomIndex;
-		std::map<uint64_t, std::shared_ptr<Room> > _roomMap;
-		std::map<uint64_t, std::shared_ptr<PlayerSession> > _playerSessionMap;
+		int _roomIndex;
+		std::map<int, std::shared_ptr<Room> > _roomMap;
+		std::map<std::string, std::shared_ptr<PlayerSession> > _playerSessionMap;
 	};
 }
 

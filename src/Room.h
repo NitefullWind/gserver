@@ -20,7 +20,7 @@ namespace gserver
 		explicit Room(std::string &&name="");
 		~Room();
 
-		uint64_t id() const { return _id; }
+		int id() const { return _id; }
 
 		void setName(const std::string& name) { _name = name; }
 		void setName(std::string&& name) { _name = std::move(name); }
@@ -33,20 +33,20 @@ namespace gserver
 		void setPassword(const std::string& password) { _password = password; }
 		void setPassword(std::string&& password) { _password = std::move(password); }
 
-		void addPlayer(uint64_t playerId) { _playerIdSet.insert(playerId); }
+		void addPlayer(std::string playerId) { _playerIdSet.insert(playerId); }
 		size_t playerCounter() const { return _playerIdSet.size(); }
 
-		void removePlayer(uint64_t playerId) { _playerIdSet.erase(playerId); }
+		void removePlayer(std::string playerId) { _playerIdSet.erase(playerId); }
 
-		bool hasPlayer(uint64_t playerId) { return (_playerIdSet.find(playerId) != _playerIdSet.end()); }
+		bool hasPlayer(std::string playerId) { return (_playerIdSet.find(playerId) != _playerIdSet.end()); }
 	private:
-		uint64_t _id;
+		int _id;
 		std::string _name;
 		std::string _description;
 		std::string _password;
-		std::set<uint64_t> _playerIdSet;
+		std::set<std::string> _playerIdSet;
 
-		void setId(uint64_t id) { _id = id; }
+		void setId(int id) { _id = id; }
 	};
 }
 
