@@ -6,3 +6,5 @@ release/
 include/tinyserver/
 .vscode/
 *.swp
+src/proto/*.pb.h
+src/proto/*.pb.cc

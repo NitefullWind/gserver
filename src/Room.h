@@ -5,48 +5,42 @@
 #include <string>
 #include <set>
 #include "common/uncopyable.h"
+#include "proto/roompb.pb.h"
 
 namespace gserver
 {
 	class Controller;
 	class PlayerSession;
+	class PlayerPB;
 
 	class Room : private Uncopyable
 	{
 	public:
 		friend  class Controller;
 
-		explicit Room(const std::string &name);
-		explicit Room(std::string &&name="");
+		explicit Room();
+		explicit Room(const RoomPB& roomPB);
+		explicit Room(RoomPB&& roomPB);
 		~Room();
 
-		int id() const { return _id; }
+		void setRoomPB(const RoomPB& roomPB) { _roomPB = roomPB; }
+		void setRoomPB(RoomPB&& roomPB) { _roomPB = std::move(roomPB); }
+		void setRoomPB(RoomPB *roomPB) { _roomPB = *roomPB; }
+		const RoomPB& roomPB() const { return _roomPB; }
+		RoomPB *mutableRoomPB() { return &_roomPB; }
 
-		void setName(const std::string& name) { _name = name; }
-		void setName(std::string&& name) { _name = std::move(name); }
-		std::string name() const { return _name; }
+		bool addPlayer(const PlayerSession *player, std::string *errmsg = nullptr);
+		int playerCounter() const;
 
-		void setDescription(const std::string& description) { _description = description; }
-		void setDescription(std::string&& description) { _description = std::move(description); }
-		std::string description() const { return _description; }
+		bool removePlayer(const std::string& playerId, std::string *errmsg = nullptr);
+		bool removePlayer(const PlayerPB *playerPB, std::string *errmsg = nullptr);
 
-		void setPassword(const std::string& password) { _password = password; }
-		void setPassword(std::string&& password) { _password = std::move(password); }
-
-		void addPlayer(std::string playerId) { _playerIdSet.insert(playerId); }
-		size_t playerCounter() const { return _playerIdSet.size(); }
-
-		void removePlayer(std::string playerId) { _playerIdSet.erase(playerId); }
-
-		bool hasPlayer(std::string playerId) { return (_playerIdSet.find(playerId) != _playerIdSet.end()); }
+		bool hasPlayer(const std::string& playerId);
+		bool hasPlayer(const PlayerPB *playerPB);
 	private:
-		int _id;
-		std::string _name;
-		std::string _description;
-		std::string _password;
-		std::set<std::string> _playerIdSet;
+		RoomPB _roomPB;
 
-		void setId(int id) { _id = id; }
+		void setId(int id) { _roomPB.set_id(id); }
 	};
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <tinyserver/tcp/tcpConnection.h>
 #include "common/uncopyable.h"
+#include "proto/playerpb.pb.h"
 
 namespace tinyserver
 {
@@ -15,6 +16,7 @@ namespace gserver
 {
 	class Controller;
 	class Room;
+	class RoomPB;
 
 	class PlayerSession : private Uncopyable
 	{
@@ -22,19 +24,20 @@ namespace gserver
 		explicit PlayerSession(Controller *ctrl, std::weak_ptr<tinyserver::TcpConnection> connection);
 		~PlayerSession();
 
-		void setName(const std::string& name) { _name = name; }
-		void setName(std::string&& name) { _name = std::move(name); }
-		std::string name() const { return _name; }
+		void setPlayerPB(const PlayerPB& playerPB) { _playerPB = playerPB; }
+		void setPlayerPB(PlayerPB&& playerPB) { _playerPB = std::move(playerPB); }
+		const PlayerPB& playerPB() const { return _playerPB; }
+		PlayerPB *mutablePlayerPB() { return &_playerPB; }
 
-		std::string sessionId() const { return _sessionId; }
-
-		void joinRoom(std::weak_ptr<Room> roomPtr);
-		void exitRoom();
-		// size_t roomId() const { return _roomId; }
+		bool createRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		bool updateRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		bool joinRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		bool exitRoom(std::string *errmsg = nullptr);
+		
+		const std::weak_ptr<Room>& RoomWeakPtr() const { return _roomPtr; }
 	private:
-		Controller *_controller;
-		std::string _sessionId;
-		std::string _name;
+		Controller *_ctrl;
+		PlayerPB _playerPB;
 		std::weak_ptr<tinyserver::TcpConnection> _tcpConnection;
 		std::weak_ptr<Room> _roomPtr;
 	};

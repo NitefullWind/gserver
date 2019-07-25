@@ -1,0 +1,13 @@
+syntax = "proto3";
+import "playerpb.proto";
+
+package gserver;
+
+message RoomPB {
+	int32 id = 1;
+	string name = 2;
+	string description = 3;
+	string password = 4;
+	PlayerPB owner = 5;				// 房间拥有者
+	repeated PlayerPB players = 6;	// 房间中的玩家
+}
