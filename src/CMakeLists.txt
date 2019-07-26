@@ -1,18 +1,7 @@
 set(proto_SRCS
-	proto/playerpb.pb.cc
-	proto/roompb.pb.cc
+	${PROJECT_SOURCE_DIR}/src/proto/message.pb.cc
+	${PROJECT_SOURCE_DIR}/src/proto/playerpb.pb.cc
+	${PROJECT_SOURCE_DIR}/src/proto/roompb.pb.cc
 )
 
-add_executable(gserver
-	main.cpp
-	Controller.cpp
-	GServer.cpp
-	PlayerSession.cpp
-	Room.cpp
-	${proto_SRCS}
-)
-target_link_libraries(gserver
-	tinyserver
-	pthread
-	protobuf
-)
+add_subdirectory(gserver)
