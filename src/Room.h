@@ -29,6 +29,8 @@ namespace gserver
 		const RoomPB& roomPB() const { return _roomPB; }
 		RoomPB *mutableRoomPB() { return &_roomPB; }
 
+		void setOwner(const PlayerSession *player);
+
 		bool addPlayer(const PlayerSession *player, std::string *errmsg = nullptr);
 		int playerCounter() const;
 
@@ -39,6 +41,7 @@ namespace gserver
 		bool hasPlayer(const PlayerPB *playerPB);
 	private:
 		RoomPB _roomPB;
+		std::shared_ptr<PlayerPB> _ownerPBPtr;
 
 		void setId(int id) { _roomPB.set_id(id); }
 	};

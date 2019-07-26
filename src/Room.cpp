@@ -5,24 +5,38 @@
 using namespace gserver;
 
 Room::Room() :
-	_roomPB()
+	_roomPB(),
+	_ownerPBPtr(new PlayerPB())
 {	
 }
 
 Room::Room(const RoomPB& roomPB) :
-	_roomPB(roomPB)
+	_roomPB(roomPB),
+	_ownerPBPtr(new PlayerPB())
 {	
 }
 
 Room::Room(RoomPB&& roomPB) :
-	_roomPB(std::move(roomPB))
+	_roomPB(std::move(roomPB)),
+	_ownerPBPtr(new PlayerPB())
 {	
+}
+
+void Room::setOwner(const PlayerSession *player)
+{
+	assert(player != nullptr);
+	auto playerPB = player->playerPB();
+	_ownerPBPtr->set_id(playerPB.id());
+	_ownerPBPtr->set_name(playerPB.name());
+	_roomPB.set_allocated_owner(_ownerPBPtr.get());
 }
 
 bool Room::addPlayer(const PlayerSession *player, std::string *errmsg)
 {
 	auto playerPB = _roomPB.add_players();
-	playerPB->CopyFrom(player->playerPB());
+	// playerPB->CopyFrom(player->playerPB());
+	playerPB->set_id(player->playerPB().id());
+	playerPB->set_name(player->playerPB().name());
 	if(errmsg) {
 		*errmsg = "";
 	}

@@ -20,18 +20,18 @@ PlayerSession::~PlayerSession()
 {
 }
 
-bool PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
 {
 	auto roomPtr = _ctrl->creatRoom();
 	roomPB->set_id(roomPtr->roomPB().id());
-	roomPB->set_allocated_owner(new PlayerPB(_playerPB));
 	roomPtr->setRoomPB(roomPB);
+	roomPtr->setOwner(this);
 	TLOG_DEBUG("Create room id: " << roomPtr->roomPB().id() << ", name: " << roomPtr->roomPB().name() << ", description: " << roomPtr->roomPB().description() << ", password: " << roomPtr->roomPB().password());
-	bool isOk = joinRoom(roomPB, errmsg);
-	return isOk;
+	auto joinRoomPtr = joinRoom(roomPB, errmsg);
+	return joinRoomPtr;
 }
 
-bool PlayerSession::updateRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::updateRoom(RoomPB *roomPB, std::string *errmsg)
 {
 	auto roomPtr = _ctrl->getRoomById(roomPB->id());
 	if(!roomPtr) {
@@ -40,16 +40,16 @@ bool PlayerSession::updateRoom(RoomPB *roomPB, std::string *errmsg)
 		roomPtr->setRoomPB(roomPB);
 		TLOG_DEBUG("Update room id: " << roomPtr->roomPB().id() << ", name: " << roomPtr->roomPB().name() << ", description: " << roomPtr->roomPB().description() << ", password: " << roomPtr->roomPB().password());
 	}
-	return true;
+	return roomPtr;
 }
 
-bool PlayerSession::joinRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::joinRoom(RoomPB *roomPB, std::string *errmsg)
 {
 	if(_roomPtr.use_count() != 0) {		// 是否已在一个房间
 		if(errmsg) {
 			*errmsg = "需要先退出当前房间";
 		}
-		return false;
+		return nullptr;
 	}
 
 	auto room = _ctrl->getRoomById(roomPB->id());
@@ -57,7 +57,7 @@ bool PlayerSession::joinRoom(RoomPB *roomPB, std::string *errmsg)
 		if(errmsg) {
 			*errmsg = "房间不存在";
 		}
-		return false;
+		return nullptr;
 	} else {
 		_roomPtr = room;
 		room->addPlayer(this);
@@ -66,22 +66,23 @@ bool PlayerSession::joinRoom(RoomPB *roomPB, std::string *errmsg)
 		for(int i=0; i<room->playerCounter(); i++) {
 			TLOG_DEBUG("===room player: " << room->roomPB().players(i).id());
 		}
-		return true;
+		return room;
 	}
-	return false;
+	return nullptr;
 }
 
-bool PlayerSession::exitRoom(std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::exitRoom(std::string *errmsg)
 {
 	if(_roomPtr.expired()) {
 		if(errmsg) {
 			*errmsg = "当前不在任何房间中";
 		}
-		return false;
+		return nullptr;
 	} else {
-		_roomPtr.lock()->removePlayer(_playerPB.id());
+		auto room = _roomPtr.lock();
 		_roomPtr.reset();
-		return true;
+		room->removePlayer(_playerPB.id());
+		return room;
 	}
-	return false;
+	return nullptr;
 }

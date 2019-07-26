@@ -97,3 +97,9 @@ std::shared_ptr<Room> Controller::getRoomById(int id)  {
 		return nullptr;
 	}
 }
+
+std::map<int, std::shared_ptr<Room> > Controller::roomMap()
+{
+	std::lock_guard<std::mutex> lk(_mutex);
+	return _roomMap;
+}

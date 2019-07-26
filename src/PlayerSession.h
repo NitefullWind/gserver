@@ -29,10 +29,10 @@ namespace gserver
 		const PlayerPB& playerPB() const { return _playerPB; }
 		PlayerPB *mutablePlayerPB() { return &_playerPB; }
 
-		bool createRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		bool updateRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		bool joinRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		bool exitRoom(std::string *errmsg = nullptr);
+		std::shared_ptr<Room> createRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> updateRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> joinRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> exitRoom(std::string *errmsg = nullptr);
 		
 		const std::weak_ptr<Room>& RoomWeakPtr() const { return _roomPtr; }
 	private:

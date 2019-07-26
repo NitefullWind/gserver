@@ -25,15 +25,23 @@ namespace gserver
 		EXITROOM = 103,
 	};
 
+	enum RspCode
+	{
+		ERROR = 0,
+		SUCCESS = 1,
+	};
+
 	typedef struct
 	{
 		uint16_t flag;
 		uint16_t cmd;
+		uint32_t reqid;
 		uint16_t datalen;
-		
-	} RequestHeader;
+		uint16_t rspcode;
+		uint32_t clientversion;
+	} MessageHeader;
 
-	#define RequestHeaderFlag 0x4753
+	#define MessageHeaderFlag 0x4753
 
 	class PlayerSession;
 
@@ -45,9 +53,9 @@ namespace gserver
 
 		void onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
-		void onNewMessage(RequestHeader header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& message);
+		void processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, tinyserver::Buffer *rspBuffer);
 
-		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr);
+		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg = nullptr);
 
 	private:
 		Controller _ctrl;

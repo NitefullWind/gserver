@@ -31,95 +31,143 @@ void GServer::onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 	_ctrl.logout(tcpConnPtr->id());
 }
 
-void GServer::onNewMessage(RequestHeader header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& message)
+void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, Buffer *rspBuffer)
 {
+	std::string errmsg;
 	switch (header.cmd)
 	{
 	case Command::LOGIN:
 		{
 			std::shared_ptr<PlayerSession> ps(new PlayerSession(&_ctrl, tcpConnPtr));
 			PlayerPB playerpb;
-			playerpb.ParseFromString(message);
+			playerpb.ParseFromString(reqMsg);
 			playerpb.set_id(tcpConnPtr->id());	//将TcpConnection的id设为用户id
 			ps->setPlayerPB(std::move(playerpb));
-			std::string errmsg;
 			if(!_ctrl.login(ps, &errmsg)) {
 				TLOG_DEBUG(errmsg);
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
+			} else {	// 返回房间列表
+				RoomPBList allRoomPB;
+				for(auto room : _ctrl.roomMap()) {
+					auto roompb = allRoomPB.add_roompb();
+					roompb->CopyFrom(room.second->roomPB());
+					roompb->set_password("");
+				}
+				rspBuffer->append(allRoomPB.SerializePartialAsString());
 			}
 		}
 		break;
 	case Command::LOGOUT:
 		{
-			std::string errmsg;
 			if(!_ctrl.logout(tcpConnPtr->id(), &errmsg)) {
 				TLOG_DEBUG(errmsg);
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
 			}
 		}
 		break;
 	case Command::CREATEROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr);
+			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
-				roompb.ParseFromString(message);
-				std::string errmsg;
-				bool isOk = ps->createRoom(&roompb, &errmsg);
-				if(!isOk) {
+				roompb.ParseFromString(reqMsg);
+				auto roomPtr = ps->createRoom(&roompb, &errmsg);
+				if(!roomPtr) {
 					TLOG_DEBUG(errmsg);
+					header.rspcode = RspCode::ERROR;
+					rspBuffer->append(errmsg);
+				} else {	// 返回房间信息
+					auto retpb = roomPtr->roomPB();
+					retpb.set_password("");
+					rspBuffer->append(retpb.SerializePartialAsString());
 				}
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
 			}
 		}
 		break;
 	case Command::UPDATEROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr);
+			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
-				roompb.ParseFromString(message);
-				ps->updateRoom(&roompb);
+				roompb.ParseFromString(reqMsg);
+				std::string errmsg;
+				auto roomPtr = ps->updateRoom(&roompb, &errmsg);
+				if(!roomPtr) {
+					TLOG_DEBUG(errmsg);
+					header.rspcode = RspCode::ERROR;
+					rspBuffer->append(errmsg);
+				}  else {	// 返回房间信息
+					auto retpb = roomPtr->roomPB();
+					retpb.set_password("");
+					rspBuffer->append(retpb.SerializePartialAsString());
+				}
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
 			}
 		}
 		break;
 	case Command::JOINROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr);
+			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
-				roompb.ParseFromString(message);
-				std::string errmsg;
-				bool isOk = ps->joinRoom(&roompb, &errmsg);
-				if(!isOk) {
+				roompb.ParseFromString(reqMsg);
+				auto roomPtr = ps->joinRoom(&roompb, &errmsg);
+				if(!roomPtr) {
 					TLOG_DEBUG(errmsg);
+					header.rspcode = RspCode::ERROR;
+					rspBuffer->append(errmsg);
+				} else {	// 返回房间信息
+					auto retpb = roomPtr->roomPB();
+					retpb.set_password("");
+					rspBuffer->append(retpb.SerializePartialAsString());
 				}
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
 			}
 		}
 		break;
 	case Command::EXITROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr);
+			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
-				std::string errmsg;
 				if(ps->exitRoom(&errmsg)) {
 					TLOG_DEBUG("Exit room success.")
 				} else {
 					TLOG_DEBUG("Exit room failed, " << errmsg);
+					header.rspcode = RspCode::ERROR;
+					rspBuffer->append(errmsg);
 				}
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
 			}
 		}
 		break;
 	
 	default:
 		TLOG_DEBUG("Invalid Command!");
-		tcpConnPtr->send("Invalid Command!");
+		header.rspcode = RspCode::ERROR;
+		rspBuffer->append("Invalid Command!");
 		break;
 	}
 }
 
-std::shared_ptr<PlayerSession> GServer::getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr)
+std::shared_ptr<PlayerSession> GServer::getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg)
 {
 	auto ps =  _ctrl.getPlayerSessionById(tcpConnPtr->id());
 	if(ps == nullptr) {
-		TLOG_DEBUG("用户未登陆");
+		if(errmsg) {
+			*errmsg = "用户未登陆";
+		}
+		TLOG_DEBUG(*errmsg);
 	}
 	return ps;
 }
