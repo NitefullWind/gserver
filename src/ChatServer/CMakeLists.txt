@@ -4,6 +4,7 @@ add_executable(server_chat
 	${proto_SRCS}
 )
 target_link_libraries(server_chat
+	gserver_auth
 	tinyserver
 	pthread
 	protobuf

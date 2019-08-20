@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "gserver.h"
+#include "auth/UserManager.h"
 
 namespace tinyserver
 {
@@ -23,6 +24,8 @@ namespace gserver
 		void onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, tinyserver::Buffer *rspBuffer);
+	private:
+		UserManager _userMgr;
 	};
 }
 

@@ -14,14 +14,14 @@ class TcpConnection;
 
 namespace gserver
 {
-	class Controller;
+	class UserManager;
 	class Room;
 	class RoomPB;
 
 	class PlayerSession : private Uncopyable
 	{
 	public:
-		explicit PlayerSession(Controller *ctrl, std::weak_ptr<tinyserver::TcpConnection> connection);
+		explicit PlayerSession(UserManager *userMgr, std::weak_ptr<tinyserver::TcpConnection> connection);
 		~PlayerSession();
 
 		void setPlayerPB(const PlayerPB& playerPB) { _playerPB = playerPB; }
@@ -36,7 +36,7 @@ namespace gserver
 		
 		const std::weak_ptr<Room>& RoomWeakPtr() const { return _roomPtr; }
 	private:
-		Controller *_ctrl;
+		UserManager *_userMgr;
 		PlayerPB _playerPB;
 		std::weak_ptr<tinyserver::TcpConnection> _tcpConnection;
 		std::weak_ptr<Room> _roomPtr;

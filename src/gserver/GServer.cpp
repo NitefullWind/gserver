@@ -5,8 +5,8 @@
 #include <tinyserver/tcp/tcpConnection.h>
 #include <tinyserver/logger.h>
 
-#include "PlayerSession.h"
-#include "Room.h"
+#include "auth/PlayerSession.h"
+#include "auth/Room.h"
 #include "proto/roompb.pb.h"
 
 using namespace gserver;
@@ -28,7 +28,7 @@ void GServer::onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 void GServer::onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 {
 	TLOG_DEBUG("disconnection:" << tcpConnPtr->peerAddress().toHostPort());
-	_ctrl.logout(tcpConnPtr->id());
+	_userMgr.logout(tcpConnPtr->id());
 }
 
 void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, Buffer *rspBuffer)
@@ -38,18 +38,13 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 	{
 	case Command::LOGIN:
 		{
-			std::shared_ptr<PlayerSession> ps(new PlayerSession(&_ctrl, tcpConnPtr));
-			PlayerPB playerpb;
-			playerpb.ParseFromString(reqMsg);
-			playerpb.set_id(tcpConnPtr->id());	//将TcpConnection的id设为用户id
-			ps->setPlayerPB(std::move(playerpb));
-			if(!_ctrl.login(ps, &errmsg)) {
+			if(!_userMgr.login(tcpConnPtr, reqMsg, &errmsg)) {
 				TLOG_DEBUG(errmsg);
 				header.rspcode = RspCode::ERROR;
 				rspBuffer->append(errmsg);
 			} else {	// 返回房间列表
 				RoomPBList allRoomPB;
-				for(auto room : _ctrl.roomMap()) {
+				for(auto room : _userMgr.roomMap()) {
 					auto roompb = allRoomPB.add_roompb();
 					roompb->CopyFrom(room.second->roomPB());
 					roompb->set_password("");
@@ -60,7 +55,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		break;
 	case Command::LOGOUT:
 		{
-			if(!_ctrl.logout(tcpConnPtr->id(), &errmsg)) {
+			if(!_userMgr.logout(tcpConnPtr->id(), &errmsg)) {
 				TLOG_DEBUG(errmsg);
 				header.rspcode = RspCode::ERROR;
 				rspBuffer->append(errmsg);
@@ -69,7 +64,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		break;
 	case Command::CREATEROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
 				roompb.ParseFromString(reqMsg);
@@ -91,7 +86,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		break;
 	case Command::UPDATEROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
 				roompb.ParseFromString(reqMsg);
@@ -114,7 +109,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		break;
 	case Command::JOINROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				RoomPB roompb;
 				roompb.ParseFromString(reqMsg);
@@ -136,7 +131,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		break;
 	case Command::EXITROOM:
 		{
-			auto ps = getLoggedPlayer(tcpConnPtr, &errmsg);
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
 				if(ps->exitRoom(&errmsg)) {
 					TLOG_DEBUG("Exit room success.")
@@ -158,16 +153,4 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		rspBuffer->append("Invalid Command!");
 		break;
 	}
-}
-
-std::shared_ptr<PlayerSession> GServer::getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg)
-{
-	auto ps =  _ctrl.getPlayerSessionById(tcpConnPtr->id());
-	if(ps == nullptr) {
-		if(errmsg) {
-			*errmsg = "用户未登陆";
-		}
-		TLOG_DEBUG(*errmsg);
-	}
-	return ps;
 }

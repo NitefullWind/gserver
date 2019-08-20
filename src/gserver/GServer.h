@@ -3,6 +3,7 @@
 
 #include "gserver.h"
 #include "Controller.h"
+#include "auth/UserManager.h"
 
 #include <memory>
 
@@ -26,11 +27,9 @@ namespace gserver
 		void onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, tinyserver::Buffer *rspBuffer);
-
-		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg = nullptr);
-
 	private:
 		Controller _ctrl;
+		UserManager _userMgr;
 	};
 }
 

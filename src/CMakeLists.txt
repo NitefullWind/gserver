@@ -6,5 +6,6 @@ set(proto_SRCS
 
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
+add_subdirectory(auth)
 add_subdirectory(gserver)
 add_subdirectory(ChatServer)

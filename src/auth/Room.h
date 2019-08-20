@@ -9,14 +9,14 @@
 
 namespace gserver
 {
-	class Controller;
+	class UserManager;
 	class PlayerSession;
 	class PlayerPB;
 
 	class Room : private Uncopyable
 	{
 	public:
-		friend  class Controller;
+		friend  class UserManager;
 
 		explicit Room();
 		explicit Room(const RoomPB& roomPB);

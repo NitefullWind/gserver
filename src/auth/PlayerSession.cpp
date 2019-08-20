@@ -3,14 +3,14 @@
 #include <tinyserver/tcp/tcpConnection.h>
 #include <tinyserver/logger.h>
 
-#include "Controller.h"
+#include "UserManager.h"
 #include "Room.h"
 
 using namespace gserver;
 using namespace tinyserver;
 
-PlayerSession::PlayerSession(Controller *ctrl, std::weak_ptr<tinyserver::TcpConnection> connection) :
-	_ctrl(ctrl),
+PlayerSession::PlayerSession(UserManager *userMgr, std::weak_ptr<tinyserver::TcpConnection> connection) :
+	_userMgr(userMgr),
 	_tcpConnection(connection)
 {
 	_playerPB.set_id(connection.lock()->id());
@@ -22,7 +22,7 @@ PlayerSession::~PlayerSession()
 
 std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
 {
-	auto roomPtr = _ctrl->creatRoom();
+	auto roomPtr = _userMgr->creatRoom();
 	roomPB->set_id(roomPtr->roomPB().id());
 	roomPtr->setRoomPB(roomPB);
 	roomPtr->setOwner(this);
@@ -33,7 +33,7 @@ std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *err
 
 std::shared_ptr<Room> PlayerSession::updateRoom(RoomPB *roomPB, std::string *errmsg)
 {
-	auto roomPtr = _ctrl->getRoomById(roomPB->id());
+	auto roomPtr = _userMgr->getRoomById(roomPB->id());
 	if(!roomPtr) {
 		TLOG_DEBUG("Can't find room by id: " << roomPB->id());
 	} else {
@@ -52,7 +52,7 @@ std::shared_ptr<Room> PlayerSession::joinRoom(RoomPB *roomPB, std::string *errms
 		return nullptr;
 	}
 
-	auto room = _ctrl->getRoomById(roomPB->id());
+	auto room = _userMgr->getRoomById(roomPB->id());
 	if(!room) {
 		if(errmsg) {
 			*errmsg = "房间不存在";
