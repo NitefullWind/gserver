@@ -1,10 +1,9 @@
-#ifndef GSERVER_GSERVER_H
-#define GSERVER_GSERVER_H
-
-#include "gserver.h"
-#include "Controller.h"
+#ifndef GSERVER_CHATSERVER_H
+#define GSERVER_CHATSERVER_H
 
 #include <memory>
+
+#include "gserver.h"
 
 namespace tinyserver
 {
@@ -15,23 +14,16 @@ typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 namespace gserver
 {
-	class PlayerSession;
-
-	class GServer
+	class ChatServer
 	{
 	public:
-		GServer();
-		~GServer();
+		ChatServer();
+		~ChatServer();
 
 		void onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, tinyserver::Buffer *rspBuffer);
-
-		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg = nullptr);
-
-	private:
-		Controller _ctrl;
 	};
 }
 
-#endif // GSERVER_GSERVER_H
+#endif // GSERVER_CHATSERVER_H

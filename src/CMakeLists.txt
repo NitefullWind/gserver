@@ -4,4 +4,7 @@ set(proto_SRCS
 	${PROJECT_SOURCE_DIR}/src/proto/roompb.pb.cc
 )
 
+include_directories(${PROJECT_SOURCE_DIR}/src/include)
+
 add_subdirectory(gserver)
+add_subdirectory(ChatServer)

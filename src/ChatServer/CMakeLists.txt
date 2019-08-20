@@ -1,0 +1,10 @@
+add_executable(server_chat
+	main.cpp
+	ChatServer.cpp
+	${proto_SRCS}
+)
+target_link_libraries(server_chat
+	tinyserver
+	pthread
+	protobuf
+)

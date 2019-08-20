@@ -6,7 +6,8 @@
 #include <tinyserver/logger.h>
 #include <sys/resource.h>
 
-#include "GServer.h"
+#include "ChatServer.h"
+#include "gserver.h"
 #include "parseMessageHeader.h"
 
 using namespace tinyserver;
@@ -26,22 +27,22 @@ int main(int argc, char **argv)
 	Logger::SetLevel(Logger::Debug);
 	
 	EventLoop loop;
-	TcpServer server(&loop, InetAddress(8086));
+	TcpServer server(&loop, InetAddress(8087));
 	server.setIOThreadNum(2);
 
-	gserver::GServer gserver;
+	gserver::ChatServer chatServer;
 	server.setConnectionCallback([&](const TcpConnectionPtr& connPtr) {
-		gserver.onNewConnection(connPtr);
+		chatServer.onNewConnection(connPtr);
 	});
 	server.setDisconnectionCallback([&](const TcpConnectionPtr& connPtr) {
-		gserver.onDisconnection(connPtr);
+		chatServer.onDisconnection(connPtr);
 	});
 	server.setMessageCallback([&](const TcpConnectionPtr& connPtr, Buffer *buffer) {
 		MessageHeader header = {0, Command::INVILID, 0, 0, RspCode::SUCCESS, 0};
 		Buffer rspBuffer;
 		std::string errmsg;
 		if(parseMessageHeader(buffer, header, &errmsg)) {
-			gserver.processRequest(header, connPtr, buffer->read(header.datalen), &rspBuffer);
+			chatServer.processRequest(header, connPtr, buffer->read(header.datalen), &rspBuffer);
 		} else {
 			TLOG_INFO(errmsg);
 		}
