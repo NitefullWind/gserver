@@ -48,6 +48,11 @@ int Room::playerCounter() const
 	return _roomPB.players_size();
 }
 
+const google::protobuf::RepeatedPtrField<gserver::PlayerPB>& Room::allPlayerPB() const
+{
+	return _roomPB.players();
+}
+
 bool Room::removePlayer(const std::string& playerId, std::string *errmsg)
 {
 	auto players = _roomPB.mutable_players();

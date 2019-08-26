@@ -6,6 +6,7 @@ add_executable(gserver
 )
 target_link_libraries(gserver
 	gserver_auth
+	gserver_common
 	tinyserver
 	pthread
 	protobuf

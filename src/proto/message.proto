@@ -1,4 +1,5 @@
 syntax = "proto3";
+import "playerpb.proto";
 
 package gserver;
 
@@ -22,5 +23,7 @@ message MessagePB {
 	int64 timestamp = 1;
 	MessageType messageType = 2;
 	DataType dataType = 3;
-	string data = 4;
+	PlayerPB sender = 4;
+	string receiver_id = 5; 
+	string data = 6;
 }

@@ -35,6 +35,8 @@ namespace gserver
 		std::shared_ptr<Room> exitRoom(std::string *errmsg = nullptr);
 		
 		const std::weak_ptr<Room>& RoomWeakPtr() const { return _roomPtr; }
+
+		const std::weak_ptr<tinyserver::TcpConnection> tcpConnectionWeakPtr() const { return _tcpConnection; }
 	private:
 		UserManager *_userMgr;
 		PlayerPB _playerPB;

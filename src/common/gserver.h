@@ -28,12 +28,15 @@ typedef struct
 	uint16_t flag;
 	Command cmd;
 	uint32_t reqid;
-	uint16_t datalen;
+	uint32_t datalen;
 	RspCode rspcode;
 	uint32_t clientversion;
 } MessageHeader;
+// MessageHeader数据长度，因内存对其，可能不等于sizeof(MessageHeader)
+#define MessageHeaderLength 18
 
 #define MessageHeaderFlag 0x4753
+#define MessageHeaderVersion 1
 
 }
 

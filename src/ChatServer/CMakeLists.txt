@@ -5,6 +5,7 @@ add_executable(server_chat
 )
 target_link_libraries(server_chat
 	gserver_auth
+	gserver_common
 	tinyserver
 	pthread
 	protobuf

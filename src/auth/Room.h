@@ -33,6 +33,7 @@ namespace gserver
 
 		bool addPlayer(const PlayerSession *player, std::string *errmsg = nullptr);
 		int playerCounter() const;
+		const google::protobuf::RepeatedPtrField<gserver::PlayerPB>& allPlayerPB() const;
 
 		bool removePlayer(const std::string& playerId, std::string *errmsg = nullptr);
 		bool removePlayer(const PlayerPB *playerPB, std::string *errmsg = nullptr);

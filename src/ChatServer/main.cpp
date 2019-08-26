@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 		} else {
 			TLOG_INFO(errmsg);
 		}
-		header.datalen = static_cast<uint16_t>(rspBuffer.readableBytes());
+		header.datalen = static_cast<uint32_t>(rspBuffer.readableBytes());
 		writeHeaderToBuffer(&rspBuffer, header);
 		connPtr->send(&rspBuffer);
 	});
