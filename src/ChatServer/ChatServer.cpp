@@ -171,7 +171,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 				if(ps) {
 					RoomPB roompb;
 					roompb.ParseFromString(reqMsg);
-					auto roomPtr = ps->joinRoom(&roompb, &errmsg);
+					auto roomPtr = ps->joinRoom(roompb.id(), &errmsg);
 					if(!roomPtr) {
 						TLOG_DEBUG(errmsg);
 						header.rspcode = RspCode::ERROR;
@@ -191,7 +191,9 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 			{
 				auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 				if(ps) {
-					if(ps->exitRoom(&errmsg)) {
+					RoomPB roompb;
+					roompb.ParseFromString(reqMsg);
+					if(ps->exitRoom(roompb.id(), &errmsg)) {
 						TLOG_DEBUG("Exit room success.")
 					} else {
 						TLOG_DEBUG("Exit room failed, " << errmsg);

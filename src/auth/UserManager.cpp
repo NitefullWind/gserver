@@ -59,7 +59,7 @@ bool UserManager::logout(const std::string& id, std::string *errmsg)
 		}
 		return false;
 	} else {
-		ps->exitRoom();
+		ps->exitAllRoom();
 	}
 	{
 		std::lock_guard<std::mutex> lk(_mutex);

@@ -1,6 +1,7 @@
 #ifndef GSERVER_PLAYERSESSION_H
 #define GSERVER_PLAYERSESSION_H
 
+#include <list>
 #include <memory>
 #include <string>
 #include <tinyserver/tcp/tcpConnection.h>
@@ -31,17 +32,19 @@ namespace gserver
 
 		std::shared_ptr<Room> createRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
 		std::shared_ptr<Room> updateRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		std::shared_ptr<Room> joinRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		std::shared_ptr<Room> exitRoom(std::string *errmsg = nullptr);
+		std::shared_ptr<Room> joinRoom(int roomId, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> exitRoom(int roomId, std::string *errmsg = nullptr);
+		void exitAllRoom();
+		bool isInRoom(int roomId);
 		
-		const std::weak_ptr<Room>& RoomWeakPtr() const { return _roomPtr; }
+		const std::list<std::weak_ptr<Room> >& RoomWeakPtrList() const { return _roomPtrList; }
 
 		const std::weak_ptr<tinyserver::TcpConnection> tcpConnectionWeakPtr() const { return _tcpConnection; }
 	private:
 		UserManager *_userMgr;
 		PlayerPB _playerPB;
 		std::weak_ptr<tinyserver::TcpConnection> _tcpConnection;
-		std::weak_ptr<Room> _roomPtr;
+		std::list<std::weak_ptr<Room> > _roomPtrList;
 	};
 	
 }

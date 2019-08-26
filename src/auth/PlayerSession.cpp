@@ -27,7 +27,7 @@ std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *err
 	roomPtr->setRoomPB(roomPB);
 	roomPtr->setOwner(this);
 	TLOG_DEBUG("Create room id: " << roomPtr->roomPB().id() << ", name: " << roomPtr->roomPB().name() << ", description: " << roomPtr->roomPB().description() << ", password: " << roomPtr->roomPB().password());
-	auto joinRoomPtr = joinRoom(roomPB, errmsg);
+	auto joinRoomPtr = joinRoom(roomPB->id(), errmsg);
 	return joinRoomPtr;
 }
 
@@ -43,23 +43,29 @@ std::shared_ptr<Room> PlayerSession::updateRoom(RoomPB *roomPB, std::string *err
 	return roomPtr;
 }
 
-std::shared_ptr<Room> PlayerSession::joinRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::joinRoom(int roomId, std::string *errmsg)
 {
-	if(_roomPtr.use_count() != 0) {		// 是否已在一个房间
+	if(roomId <= 0) {
 		if(errmsg) {
-			*errmsg = "需要先退出当前房间";
+			*errmsg = "房间号不正确";
+		}
+		return nullptr;
+	}
+	if(isInRoom(roomId)) {		// 是否已在此房间
+		if(errmsg) {
+			*errmsg = "已在该房间中";
 		}
 		return nullptr;
 	}
 
-	auto room = _userMgr->getRoomById(roomPB->id());
+	auto room = _userMgr->getRoomById(roomId);
 	if(!room) {
 		if(errmsg) {
 			*errmsg = "房间不存在";
 		}
 		return nullptr;
 	} else {
-		_roomPtr = room;
+		_roomPtrList.push_back(room);
 		room->addPlayer(this);
 
 		TLOG_DEBUG("Player id: " << _playerPB.id() << ", name:" << _playerPB.name() << " joined room id: " << _playerPB.id() << ", name: " << _playerPB.name());
@@ -71,18 +77,43 @@ std::shared_ptr<Room> PlayerSession::joinRoom(RoomPB *roomPB, std::string *errms
 	return nullptr;
 }
 
-std::shared_ptr<Room> PlayerSession::exitRoom(std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::exitRoom(int roomId, std::string *errmsg)
 {
-	if(_roomPtr.expired()) {
-		if(errmsg) {
-			*errmsg = "当前不在任何房间中";
+	for(auto it = _roomPtrList.begin(); it != _roomPtrList.end(); it++) {
+		auto roomPtr = it->lock();
+		if(roomPtr && (roomId == roomPtr->roomPB().id())) {
+			_roomPtrList.erase(it);
+			roomPtr->removePlayer(_playerPB.id());
+			return roomPtr;
 		}
-		return nullptr;
-	} else {
-		auto room = _roomPtr.lock();
-		_roomPtr.reset();
-		room->removePlayer(_playerPB.id());
-		return room;
+	}
+	if(errmsg) {
+		*errmsg = "不在该房间中";
 	}
 	return nullptr;
+}
+
+void PlayerSession::exitAllRoom()
+{
+	for(auto roomWeakPtr : _roomPtrList) {
+		auto roomPtr = roomWeakPtr.lock();
+		if(roomPtr) {
+			roomPtr->removePlayer(_playerPB.id());
+		}
+	}
+	_roomPtrList.clear();
+}
+
+bool PlayerSession::isInRoom(int roomId)
+{
+	if(roomId <= 0) {
+		return false;
+	}
+	for(auto roomWeakPtr : _roomPtrList) {
+		auto roomPtr = roomWeakPtr.lock();
+		if(roomPtr && (roomId == roomPtr->roomPB().id())) {
+			return true;
+		}
+	}
+	return false;
 }
