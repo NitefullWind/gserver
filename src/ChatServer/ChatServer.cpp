@@ -45,13 +45,23 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 				{
 				case MessagePB::MT_PRIVATE_CHAT:
 					{
-						TLOG_TRACE("privite chat");
+						std::string receiverId = msgPB.receiver_id();
+						if(receiverId != "") {
+							msgPB.set_allocated_sender(ps->mutablePlayerPB());
+							bool isOk = sendMsgToUser(receiverId, msgPB, &errmsg);
+							msgPB.release_sender();
+							if(!isOk) {
+								header.rspcode = RspCode::ERROR;
+								rspBuffer->append(errmsg);
+							}
+						} else {
+							header.rspcode = RspCode::ERROR;
+							rspBuffer->append("用户id错误");
+						}
 					}
 					break;
 				case MessagePB::MT_GROUP_CHAT:
 					{
-						TLOG_TRACE("group chat");
-						
 						int groupId = 0;
 						try {
 							groupId = std::stoi(msgPB.receiver_id());
@@ -63,12 +73,17 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 						if(groupId > 0) {
 							std::shared_ptr<Room> roomPtr = _userMgr.getRoomById(groupId);
 							if(roomPtr) {
-								msgPB.set_allocated_sender(ps->mutablePlayerPB());
-								bool isOk = sendMsgToGroup(roomPtr->roomPB(), msgPB, &errmsg);
-								msgPB.release_sender(); // 释放指针的控制权，避免在MessagePB的析构函数中被析构
-								if(!isOk) {
+								if (ps->isInRoom(roomPtr->roomPB().id())) {
+									msgPB.set_allocated_sender(ps->mutablePlayerPB());
+									bool isOk = sendMsgToGroup(roomPtr->roomPB(), msgPB, &errmsg);
+									msgPB.release_sender(); // 释放指针的控制权，避免在MessagePB的析构函数中被析构
+									if(!isOk) {
+										header.rspcode = RspCode::ERROR;
+										rspBuffer->append(errmsg);
+									}
+								} else {
 									header.rspcode = RspCode::ERROR;
-									rspBuffer->append(errmsg);
+									rspBuffer->append("用户不在该房间中");
 								}
 							} else {
 								TLOG_DEBUG("Don't find room: " << msgPB.receiver_id());
@@ -77,7 +92,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 							}
 						} else {
 							header.rspcode = RspCode::ERROR;
-							rspBuffer->append("请输入正确的房间号");
+							rspBuffer->append("房间号错误");
 						}
 					}
 					break;
