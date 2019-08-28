@@ -22,7 +22,7 @@ PlayerSession::~PlayerSession()
 
 std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
 {
-	auto roomPtr = _userMgr->creatRoom();
+	auto roomPtr = _userMgr->createRoom();
 	roomPB->set_id(roomPtr->roomPB().id());
 	roomPtr->setRoomPB(roomPB);
 	roomPtr->setOwner(this);

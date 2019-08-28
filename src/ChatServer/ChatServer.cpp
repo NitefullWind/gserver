@@ -19,6 +19,10 @@ ChatServer::~ChatServer()
 {
 }
 
+void ChatServer::init()
+{
+	createDefaultChatRoom();
+}
 
 void ChatServer::onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 {
@@ -115,7 +119,11 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 					TLOG_DEBUG(errmsg);
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
-				} else {	// 返回房间列表
+				} else {
+					// 加入全服聊天室
+					auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
+					ps->joinRoom(1, &errmsg);
+					// 返回房间列表
 					RoomPBList allRoomPB;
 					for(auto room : _userMgr.roomMap()) {
 						auto roompb = allRoomPB.add_roompb();
@@ -279,6 +287,7 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msg
 		if(psTcpConnection) {
 			MessageHeader header = {MessageHeaderFlag, Command::SENDMSG, 0, static_cast<uint32_t>(msgPBStr.length()), RspCode::SUCCESS, MessageHeaderVersion};
 			Buffer rspBuffer;
+			rspBuffer.setPrependSize(MessageHeaderLength);
 			writeHeaderToBuffer(&rspBuffer, header);
 			rspBuffer.append(msgPBStr);
 			auto sendStr = rspBuffer.readAll();
@@ -298,3 +307,8 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msg
 	return false;
 }
 
+void ChatServer::createDefaultChatRoom()
+{
+	auto roomPtr = _userMgr.createRoom();
+	roomPtr->mutableRoomPB()->set_name("全服");
+}

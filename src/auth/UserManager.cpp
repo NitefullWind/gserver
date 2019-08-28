@@ -97,7 +97,7 @@ std::shared_ptr<PlayerSession> UserManager::getLoggedPlayer(const tinyserver::Tc
 	return ps;
 }
 
-std::shared_ptr<Room> UserManager::creatRoom()
+std::shared_ptr<Room> UserManager::createRoom()
 {
 	std::shared_ptr<Room> roomPtr(new Room());
 	int id = 0;

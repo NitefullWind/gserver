@@ -24,6 +24,8 @@ namespace gserver
 		ChatServer();
 		~ChatServer();
 
+		void init();
+
 		void onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr);
 		void processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, tinyserver::Buffer *rspBuffer);
@@ -36,6 +38,8 @@ namespace gserver
 		bool sendMsgToUser(const PlayerPB& playerPB, const MessagePB& msgPB, std::string *errmsg = nullptr);
 		bool sendMsgToUser(const std::string& userId, const MessagePB& msgPB, std::string *errmsg = nullptr);
 		bool sendMsgToUser(const std::string& userId, const std::string& msgPBStr, std::string *errmsg = nullptr);
+
+		void createDefaultChatRoom();
 	};
 }
 

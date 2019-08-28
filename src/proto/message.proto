@@ -24,6 +24,6 @@ message MessagePB {
 	MessageType messageType = 2;
 	DataType dataType = 3;
 	PlayerPB sender = 4;
-	string receiver_id = 5; 
+	string receiver_id = 5; // user's id or room's id
 	string data = 6;
 }

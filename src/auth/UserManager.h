@@ -25,7 +25,7 @@ namespace gserver
 
 		std::shared_ptr<PlayerSession> getPlayerSessionById(const std::string& id);
 		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg);
-		std::shared_ptr<Room> creatRoom();
+		std::shared_ptr<Room> createRoom();
 		std::shared_ptr<Room> getRoomById(int id);
 		std::map<int, std::shared_ptr<Room> > roomMap();
 	private:

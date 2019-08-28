@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	server.setMessageCallback([&](const TcpConnectionPtr& connPtr, Buffer *buffer) {
 		MessageHeader header = {0, Command::INVILID, 0, 0, RspCode::SUCCESS, 0};
 		Buffer rspBuffer;
+		rspBuffer.setPrependSize(MessageHeaderLength);
 		std::string errmsg;
 		if(parseMessageHeader(buffer, header, &errmsg)) {
 			gserver.processRequest(header, connPtr, buffer->read(header.datalen), &rspBuffer);
