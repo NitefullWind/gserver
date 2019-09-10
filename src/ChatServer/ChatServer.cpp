@@ -31,7 +31,7 @@ void ChatServer::onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 
 void ChatServer::onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 {
-
+	_userMgr.logout(tcpConnPtr->id());
 }
 
 void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, Buffer *rspBuffer)
@@ -287,7 +287,6 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msg
 		if(psTcpConnection) {
 			MessageHeader header = {MessageHeaderFlag, Command::SENDMSG, 0, static_cast<uint32_t>(msgPBStr.length()), RspCode::SUCCESS, MessageHeaderVersion};
 			Buffer rspBuffer;
-			rspBuffer.setPrependSize(MessageHeaderLength);
 			writeHeaderToBuffer(&rspBuffer, header);
 			rspBuffer.append(msgPBStr);
 			auto sendStr = rspBuffer.readAll();

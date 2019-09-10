@@ -7,17 +7,65 @@
 
 #include "auth/PlayerSession.h"
 #include "auth/Room.h"
+#include "common/parseMessageHeader.h"
 #include "proto/roompb.pb.h"
 
 using namespace gserver;
 using namespace tinyserver;
 
-GServer::GServer()
+GServer::GServer(uint16_t port):
+	_mainLoop(),
+	_threadPool(&_mainLoop, 2),
+	_tcpServer(_threadPool.getNextLoop(), InetAddress(port)),
+	_clientChat(_threadPool.getNextLoop(), InetAddress("127.0.0.1", 8087)),
+	_started(false)
 {
 }
 
 GServer::~GServer()
 {
+}
+
+void GServer::start()
+{
+	assert(_started == false);
+	_started = true;
+
+	_clientChat.setRetry(true);
+	_clientChat.setConnectionCallback([](const TcpConnectionPtr& connPtr) {
+		TLOG_INFO("连接到聊天服务器:" << connPtr->peerAddress().toHostPort());
+		PlayerPB admin_gserver;
+		admin_gserver.set_name("Admin Gserver");
+		sendMessageToConnection(connPtr, Command::LOGIN, 0, admin_gserver.SerializePartialAsString());
+	});
+	_clientChat.setMessageCallback([](const TcpConnectionPtr& connPtr, Buffer *buffer) {
+		
+	});
+	_clientChat.setDisconnectionCallback([](const TcpConnectionPtr& connPtr) {
+		TLOG_INFO("已断开聊天服务器:" << connPtr->peerAddress().toHostPort());
+	});
+	_clientChat.connect();
+
+	_tcpServer.setIOThreadNum(2);
+	_tcpServer.setConnectionCallback(std::bind(&GServer::onNewConnection, this, std::placeholders::_1));
+	_tcpServer.setDisconnectionCallback(std::bind(&GServer::onDisconnection, this, std::placeholders::_1));
+	_tcpServer.setMessageCallback([this](const TcpConnectionPtr& connPtr, Buffer *buffer) {
+		MessageHeader header = {0, Command::INVILID, 0, 0, RspCode::SUCCESS, 0};
+		Buffer rspBuffer;
+		std::string errmsg;
+		if(parseMessageHeader(buffer, header, &errmsg)) {
+			this->processRequest(header, connPtr, buffer->read(header.datalen), &rspBuffer);
+		} else {
+			TLOG_INFO(errmsg);
+		}
+		header.datalen = static_cast<uint32_t>(rspBuffer.readableBytes());
+		writeHeaderToBuffer(&rspBuffer, header);
+		connPtr->send(&rspBuffer);
+	});
+	_tcpServer.start();
+
+	_threadPool.start();
+	_mainLoop.loop();
 }
 
 void GServer::onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)

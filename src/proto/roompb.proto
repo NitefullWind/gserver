@@ -10,6 +10,8 @@ message RoomPB {
 	string password = 4;
 	PlayerPB owner = 5;				// 房间拥有者
 	repeated PlayerPB players = 6;	// 房间中的玩家
+	string server_ip = 7;			// 房间所在服务器ip
+	int32 server_port = 8;			// 房间所在服务器端口
 }
 
 message RoomPBList {
