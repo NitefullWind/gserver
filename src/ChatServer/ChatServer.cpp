@@ -278,6 +278,15 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const MessagePB& msgPB
 	return sendMsgToUser(userId, msgPBStr, errmsg);
 }
 
+/**
+ * @brief 向用户发送消息
+ * 
+ * @param userId 用户ID
+ * @param msgPBStr google protobuf 格式的消息字符串
+ * @param errmsg 出错信息
+ * @return true 发送成功
+ * @return false 发送失败
+ */
 bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msgPBStr, std::string *errmsg)
 {
 	auto ps = _userMgr.getPlayerSessionById(userId);
@@ -285,7 +294,7 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msg
 		auto psTcpConnection = ps->tcpConnectionWeakPtr().lock();
 		
 		if(psTcpConnection) {
-			MessageHeader header = {MessageHeaderFlag, Command::SENDMSG, 0, static_cast<uint32_t>(msgPBStr.length()), RspCode::SUCCESS, MessageHeaderVersion};
+			MessageHeader header = {MessageHeaderFlag, Command::RECVMSG, 0, static_cast<uint32_t>(msgPBStr.length()), RspCode::SUCCESS, MessageHeaderVersion};
 			Buffer rspBuffer;
 			writeHeaderToBuffer(&rspBuffer, header);
 			rspBuffer.append(msgPBStr);

@@ -15,6 +15,7 @@ enum class Command : uint16_t
 	JOINROOM = 102,
 	EXITROOM = 103,
 	SENDMSG = 200,
+	RECVMSG = 201,
 };
 
 enum class RspCode : uint16_t
