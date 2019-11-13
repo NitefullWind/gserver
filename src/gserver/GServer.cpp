@@ -90,14 +90,15 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				TLOG_DEBUG(errmsg);
 				header.rspcode = RspCode::ERROR;
 				rspBuffer->append(errmsg);
-			} else {	// 返回房间列表
-				RoomPBList allRoomPB;
-				for(auto room : _userMgr.roomMap()) {
-					auto roompb = allRoomPB.add_roompb();
-					roompb->CopyFrom(room.second->roomPB());
-					roompb->set_password("");
-				}
-				rspBuffer->append(allRoomPB.SerializePartialAsString());
+			} else {
+				//!TODO 返回登录成功信息
+				// RoomPBList allRoomPB;
+				// for(auto room : _userMgr.roomMap()) {
+				// 	auto roompb = allRoomPB.add_roompb();
+				// 	roompb->CopyFrom(room.second->roomPB());
+				// 	roompb->set_password("");
+				// }
+				// rspBuffer->append(allRoomPB.SerializePartialAsString());
 			}
 		}
 		break;
@@ -189,6 +190,45 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 					TLOG_DEBUG("Exit room failed, " << errmsg);
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
+				}
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
+			}
+		}
+		break;
+	case Command::ROOMLIST:
+		{
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
+			if(ps) {
+				RoomPBList allRoomPB;
+				for(auto room : _userMgr.roomMap()) {
+					auto roompb = allRoomPB.add_roompb();
+					roompb->set_id(room.second->roomPB().id());
+					roompb->set_name(room.second->roomPB().name());
+				}
+				rspBuffer->append(allRoomPB.SerializePartialAsString());
+			} else {
+				header.rspcode = RspCode::ERROR;
+				rspBuffer->append(errmsg);
+			}
+		}
+		break;
+	case Command::ROOMINFO:
+		{
+			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
+			if(ps) {
+				RoomPB roompb;
+				roompb.ParseFromString(reqMsg);
+
+				auto roompbPtr = _userMgr.getRoomById(roompb.id());
+				if(roompbPtr) {
+					roompb.CopyFrom(roompbPtr->roomPB());
+					roompb.set_password("******");
+					rspBuffer->append(roompb.SerializePartialAsString());
+				} else {
+					header.rspcode = RspCode::ERROR;
+					rspBuffer->append("房间不存在");
 				}
 			} else {
 				header.rspcode = RspCode::ERROR;

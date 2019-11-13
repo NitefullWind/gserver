@@ -14,6 +14,8 @@ enum class Command : uint16_t
 	UPDATEROOM = 101,
 	JOINROOM = 102,
 	EXITROOM = 103,
+	ROOMLIST = 104,
+	ROOMINFO = 105,
 	SENDMSG = 200,
 	RECVMSG = 201,
 };

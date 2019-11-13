@@ -22,6 +22,10 @@ PlayerSession::~PlayerSession()
 
 std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
 {
+	if(roomPB->name() == "") {
+		*errmsg = "房间名不能为空";
+		return nullptr;
+	}
 	auto roomPtr = _userMgr->createRoom();
 	roomPB->set_id(roomPtr->roomPB().id());
 	roomPtr->setRoomPB(roomPB);
