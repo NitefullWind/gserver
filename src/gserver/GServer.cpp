@@ -7,6 +7,7 @@
 
 #include "auth/PlayerSession.h"
 #include "auth/Room.h"
+#include "ChatClient.h"
 #include "common/parseMessageHeader.h"
 #include "proto/roompb.pb.h"
 
@@ -17,8 +18,10 @@ GServer::GServer(uint16_t port):
 	_mainLoop(),
 	_threadPool(&_mainLoop, 2),
 	_tcpServer(_threadPool.getNextLoop(), InetAddress(port)),
-	_clientChat(_threadPool.getNextLoop(), InetAddress("127.0.0.1", 8087)),
-	_started(false)
+	_started(false),
+	_ctrl(),
+	_userMgr(),
+	_clientChat(_threadPool.getNextLoop(), &_userMgr)
 {
 }
 
@@ -31,20 +34,7 @@ void GServer::start()
 	assert(_started == false);
 	_started = true;
 
-	_clientChat.setRetry(true);
-	_clientChat.setConnectionCallback([](const TcpConnectionPtr& connPtr) {
-		TLOG_INFO("连接到聊天服务器:" << connPtr->peerAddress().toHostPort());
-		PlayerPB admin_gserver;
-		admin_gserver.set_name("Admin Gserver");
-		sendMessageToConnection(connPtr, Command::LOGIN, 0, admin_gserver.SerializePartialAsString());
-	});
-	_clientChat.setMessageCallback([](const TcpConnectionPtr& connPtr, Buffer *buffer) {
-		
-	});
-	_clientChat.setDisconnectionCallback([](const TcpConnectionPtr& connPtr) {
-		TLOG_INFO("已断开聊天服务器:" << connPtr->peerAddress().toHostPort());
-	});
-	_clientChat.connect();
+	_clientChat.start();
 
 	_tcpServer.setIOThreadNum(2);
 	_tcpServer.setConnectionCallback(std::bind(&GServer::onNewConnection, this, std::placeholders::_1));
@@ -115,10 +105,19 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 		{
 			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
-				RoomPB roompb;
+				RoomPB roompb, chatRoomPB;
 				roompb.ParseFromString(reqMsg);
 				auto roomPtr = ps->createRoom(&roompb, &errmsg);
-				if(!roomPtr) {
+				bool isOk = false;
+				// 创建聊天房间
+				if(roomPtr) {
+					RoomPB chatRoomPB;
+					chatRoomPB.ParseFromString(reqMsg);
+					chatRoomPB.set_customid(roomPtr->roomPB().id());
+					isOk = _clientChat.createRoom(&chatRoomPB, &errmsg);
+				}
+				if(!isOk) {
+					//!TODO 删除创建的房间
 					TLOG_DEBUG(errmsg);
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);

@@ -24,14 +24,13 @@ int main(int argc, char **argv)
 		return -1; 
 	}
 
-	Logger::SetLevel(Logger::Debug);
+	Logger::SetLevel(Logger::Trace);
 	
 	EventLoop loop;
 	TcpServer server(&loop, InetAddress(8087));
 	server.setIOThreadNum(2);
 
 	gserver::ChatServer chatServer;
-	chatServer.init();
 	server.setConnectionCallback([&](const TcpConnectionPtr& connPtr) {
 		chatServer.onNewConnection(connPtr);
 	});

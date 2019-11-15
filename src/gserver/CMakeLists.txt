@@ -1,5 +1,6 @@
 add_executable(gserver
 	main.cpp
+	ChatClient.cpp
 	Controller.cpp
 	GServer.cpp
 	${proto_SRCS}

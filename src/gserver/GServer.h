@@ -4,6 +4,7 @@
 #include "gserver.h"
 #include "Controller.h"
 #include "auth/UserManager.h"
+#include "ChatClient.h"
 
 #include <memory>
 #include <tinyserver/eventLoop.h>
@@ -37,10 +38,10 @@ namespace gserver
 		tinyserver::EventLoop _mainLoop;
 		tinyserver::EventLoopThreadPool _threadPool;
 		tinyserver::TcpServer _tcpServer;
-		tinyserver::TcpClient _clientChat;
 		bool _started;
 		Controller _ctrl;
 		UserManager _userMgr;
+		ChatClient _clientChat;
 	};
 }
 

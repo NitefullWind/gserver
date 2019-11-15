@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <tinyserver/buffer.h>
+#include <tinyserver/logger.h>
 #include <tinyserver/tcp/tcpConnection.h>
 
 namespace gserver
@@ -75,6 +76,7 @@ void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& t
 	tinyserver::Buffer sendBuf;
 	sendBuf.append(data);
 	writeHeaderToBuffer(&sendBuf, header);
+	TLOG_DEBUG("Send message to connection: " << tcpConnPtr->id() << ", cmd: " << (int)header.cmd << ", data size: " << sendBuf.readableBytes());
 	tcpConnPtr->send(&sendBuf);
 }
 

@@ -21,7 +21,7 @@ ChatServer::~ChatServer()
 
 void ChatServer::init()
 {
-	createDefaultChatRoom();
+	// createDefaultChatRoom();
 }
 
 void ChatServer::onNewConnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
@@ -49,7 +49,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 				{
 				case MessagePB::MT_PRIVATE_CHAT:
 					{
-						std::string receiverId = msgPB.receiver_id();
+						std::string receiverId = msgPB.receiverid();
 						if(receiverId != "") {
 							msgPB.set_allocated_sender(ps->mutablePlayerPB());
 							bool isOk = sendMsgToUser(receiverId, msgPB, &errmsg);
@@ -68,11 +68,11 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 					{
 						int groupId = 0;
 						try {
-							groupId = std::stoi(msgPB.receiver_id());
+							groupId = std::stoi(msgPB.receiverid());
 						} catch (std::invalid_argument) {
-							TLOG_DEBUG("Invalid group id: " << msgPB.receiver_id());
+							TLOG_DEBUG("Invalid group id: " << msgPB.receiverid());
 						} catch (std::out_of_range) {
-							TLOG_DEBUG("Group id: " << msgPB.receiver_id() << " out of range");
+							TLOG_DEBUG("Group id: " << msgPB.receiverid() << " out of range");
 						}
 						if(groupId > 0) {
 							std::shared_ptr<Room> roomPtr = _userMgr.getRoomById(groupId);
@@ -90,7 +90,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 									rspBuffer->append("用户不在该房间中");
 								}
 							} else {
-								TLOG_DEBUG("Don't find room: " << msgPB.receiver_id());
+								TLOG_DEBUG("Don't find room: " << msgPB.receiverid());
 								header.rspcode = RspCode::ERROR;
 								rspBuffer->append("房间不存在");
 							}
