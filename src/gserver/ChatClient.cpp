@@ -1,6 +1,7 @@
 #include "ChatClient.h"
 
 #include <assert.h>
+#include <memory>
 #include <tinyserver/buffer.h>
 #include <tinyserver/tcp/tcpConnection.h>
 #include <tinyserver/logger.h>
@@ -99,6 +100,16 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
                     auto roomPtr = _userMgr->getRoomById(customId);
                     if(roomPtr) {
                         TLOG_DEBUG(roomPtr->roomPB().name() << " 的聊天房间创建成功！")
+                        std::shared_ptr<RoomPB> roompbPtr = std::make_shared<RoomPB>(std::move(roompb));
+                        roomPtr->mutableRoomPB()->set_allocated_relatedroom(roompbPtr.get());
+                        auto ownerpb = roomPtr->roomPB().owner();
+                        auto player = _userMgr->getPlayerSessionById(ownerpb.id());
+                        auto psConnection = player->tcpConnectionWeakPtr().lock();
+                        if(psConnection) {
+                            sendMessageToConnection(psConnection, Command::UPDATEROOM, 0, roomPtr->roomPB().SerializePartialAsString());
+                        } else {
+                            TLOG_INFO("房主已不在线");
+                        }
                     } else {
                         TLOG_INFO(roompb.customid() << " 所对应的游戏房间不存在！")
                         //!TODO 删除创建的房间

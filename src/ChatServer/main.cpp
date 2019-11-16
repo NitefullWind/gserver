@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 		return -1; 
 	}
 
-	Logger::SetLevel(Logger::Trace);
+	Logger::SetLevel(Logger::Debug);
 	
 	EventLoop loop;
 	TcpServer server(&loop, InetAddress(8087));

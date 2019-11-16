@@ -20,6 +20,7 @@ message RoomPB {
 	int32 serverPort = 8;			// 房间所在服务器端口
 	bool hasPassword = 9;			// 是否有密码
 	int32 customID = 10;			// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
+	RoomPB relatedRoom = 11;		// 关联房间，比如用于存储游戏房间的聊天房间信息
 }
 
 message RoomPBList {
