@@ -11,23 +11,23 @@ void readHeaderFromBuffer(tinyserver::Buffer *buffer, MessageHeader& header)
 {
 	assert(buffer != nullptr);
 	assert(buffer->readableBytes() >= MessageHeaderLength);
-	header.flag = buffer->readInt16();
-	header.cmd = (Command)buffer->readInt16();
-	header.reqid = buffer->readInt32();
-	header.datalen = buffer->readInt32();
-	header.rspcode = (RspCode)buffer->readInt16();
-	header.clientversion = buffer->readInt32();
+	header.flag = buffer->readUInt16();
+	header.cmd = (Command)buffer->readUInt16();
+	header.reqid = buffer->readUInt32();
+	header.datalen = buffer->readUInt32();
+	header.rspcode = (RspCode)buffer->readUInt16();
+	header.clientversion = buffer->readUInt32();
 }
 
 void writeHeaderToBuffer(tinyserver::Buffer *buffer, const MessageHeader& header)
 {
 	assert(buffer != nullptr);
-	buffer->prependInt32(header.clientversion);
-	buffer->prependInt16((uint16_t)header.rspcode);
-	buffer->prependInt32(header.datalen);
-	buffer->prependInt32(header.reqid);
-	buffer->prependInt16((uint16_t)header.cmd);
-	buffer->prependInt16(header.flag);
+	buffer->prependUInt32(header.clientversion);
+	buffer->prependUInt16((uint16_t)header.rspcode);
+	buffer->prependUInt32(header.datalen);
+	buffer->prependUInt32(header.reqid);
+	buffer->prependUInt16((uint16_t)header.cmd);
+	buffer->prependUInt16(header.flag);
 }
 
 bool parseMessageHeader(tinyserver::Buffer *buffer, MessageHeader& header, std::string *errmsg)
