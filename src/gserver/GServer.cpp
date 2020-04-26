@@ -222,9 +222,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 
 				auto roompbPtr = _userMgr.getRoomById(roompb.id());
 				if(roompbPtr) {
-					roompb.CopyFrom(roompbPtr->roomPB());
-					roompb.set_password("******");
-					rspBuffer->append(roompb.SerializePartialAsString());
+					rspBuffer->append(roompbPtr->roomPB().SerializePartialAsString());
 				} else {
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append("房间不存在");

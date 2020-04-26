@@ -57,15 +57,14 @@ bool parseMessageHeader(tinyserver::Buffer *buffer, MessageHeader& header, std::
 	return false;
 }
 
-void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& tcpConnPtr, const MessageHeader& header, const tinyserver::Buffer *buffer)
+void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& tcpConnPtr, const MessageHeader& header, tinyserver::Buffer *buffer)
 {
 	assert(tcpConnPtr != nullptr);
-	tinyserver::Buffer sendBuf(*buffer);
-	writeHeaderToBuffer(&sendBuf, header);
-	tcpConnPtr->send(&sendBuf);
+	writeHeaderToBuffer(buffer, header);
+	tcpConnPtr->send(buffer);
 }
 
-void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& tcpConnPtr, Command cmd, uint32_t reqid, const tinyserver::Buffer *buffer)
+void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& tcpConnPtr, Command cmd, uint32_t reqid, tinyserver::Buffer *buffer)
 {
 	MessageHeader header = {MessageHeaderFlag, cmd, reqid, static_cast<uint32_t>(buffer->readableBytes()), RspCode::SUCCESS, MessageHeaderVersion};
 	return sendMessageToConnection(tcpConnPtr, header, buffer);
