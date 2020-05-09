@@ -17,7 +17,6 @@ set(CXX_FLAGS
 	-march=native
 	-std=c++11
 	#-rdynamic
-	-D_GLIBCXX_USE_CXX11_ABI=0
 	)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	list(APPEND CXX_FLAGS "-Wno-null-dereference")

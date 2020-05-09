@@ -99,7 +99,7 @@ std::shared_ptr<PlayerSession> UserManager::getLoggedPlayer(const tinyserver::Tc
 
 std::shared_ptr<Room> UserManager::createRoom()
 {
-	std::shared_ptr<Room> roomPtr(new Room());
+	auto roomPtr = std::make_shared<Room>();
 	int id = 0;
 	{
 		std::lock_guard<std::mutex> lk(_mutex);
