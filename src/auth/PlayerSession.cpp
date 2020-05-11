@@ -27,10 +27,10 @@ std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *err
 		return nullptr;
 	}
 	auto roomPtr = _userMgr->createRoom();
-	roomPB->set_id(roomPtr->roomPB().id());
-	roomPtr->setRoomPB(roomPB);
+	roomPB->set_id(roomPtr->id());
+	roomPtr->setByRoomPB(*roomPB);
 	roomPtr->setOwner(this);
-	TLOG_DEBUG("Create room id: " << roomPtr->roomPB().id() << ", name: " << roomPtr->roomPB().name() << ", description: " << roomPtr->roomPB().description() << ", password: " << roomPtr->roomPB().password());
+	TLOG_DEBUG("Create room id: " << roomPtr->id() << ", name: " << roomPtr->name() << ", description: " << roomPtr->description() << ", password: " << roomPtr->password());
 	auto joinRoomPtr = joinRoom(roomPB->id(), errmsg);
 	return joinRoomPtr;
 }
@@ -41,8 +41,8 @@ std::shared_ptr<Room> PlayerSession::updateRoom(RoomPB *roomPB, std::string *err
 	if(!roomPtr) {
 		TLOG_DEBUG("Can't find room by id: " << roomPB->id());
 	} else {
-		roomPtr->setRoomPB(roomPB);
-		TLOG_DEBUG("Update room id: " << roomPtr->roomPB().id() << ", name: " << roomPtr->roomPB().name() << ", description: " << roomPtr->roomPB().description() << ", password: " << roomPtr->roomPB().password());
+		roomPtr->setByRoomPB(*roomPB);
+		TLOG_DEBUG("Update room id: " << roomPtr->id() << ", name: " << roomPtr->name() << ", description: " << roomPtr->description() << ", password: " << roomPtr->password());
 	}
 	return roomPtr;
 }
@@ -73,8 +73,8 @@ std::shared_ptr<Room> PlayerSession::joinRoom(int roomId, std::string *errmsg)
 		room->addPlayer(this);
 
 		TLOG_DEBUG("Player id: " << _playerPB.id() << ", name:" << _playerPB.name() << " joined room id: " << _playerPB.id() << ", name: " << _playerPB.name());
-		for(int i=0; i<room->playerCounter(); i++) {
-			TLOG_DEBUG("===room player: " << room->roomPB().players(i).id());
+		for(auto& p : room->players()) {
+			TLOG_DEBUG("===room player: " << p);
 		}
 		return room;
 	}
@@ -85,7 +85,7 @@ std::shared_ptr<Room> PlayerSession::exitRoom(int roomId, std::string *errmsg)
 {
 	for(auto it = _roomPtrList.begin(); it != _roomPtrList.end(); it++) {
 		auto roomPtr = it->lock();
-		if(roomPtr && (roomId == roomPtr->roomPB().id())) {
+		if(roomPtr && (roomId == roomPtr->id())) {
 			_roomPtrList.erase(it);
 			roomPtr->removePlayer(_playerPB.id());
 			return roomPtr;
@@ -115,7 +115,7 @@ bool PlayerSession::isInRoom(int roomId)
 	}
 	for(auto roomWeakPtr : _roomPtrList) {
 		auto roomPtr = roomWeakPtr.lock();
-		if(roomPtr && (roomId == roomPtr->roomPB().id())) {
+		if(roomPtr && (roomId == roomPtr->id())) {
 			return true;
 		}
 	}

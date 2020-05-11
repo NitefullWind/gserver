@@ -113,7 +113,7 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				if(roomPtr) {
 					RoomPB chatRoomPB;
 					chatRoomPB.ParseFromString(reqMsg);
-					chatRoomPB.set_customid(roomPtr->roomPB().id());
+					chatRoomPB.set_customid(roomPtr->id());
 					isOk = _clientChat.createRoom(&chatRoomPB, &errmsg);
 				}
 				if(!isOk) {
@@ -122,7 +122,8 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
 				} else {	// 返回房间信息
-					auto retpb = roomPtr->roomPB();
+					RoomPB retpb;
+					roomPtr->toRoomPB(retpb);
 					retpb.set_password("");
 					rspBuffer->append(retpb.SerializePartialAsString());
 				}
@@ -145,7 +146,8 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
 				}  else {	// 返回房间信息
-					auto retpb = roomPtr->roomPB();
+					RoomPB retpb;
+					roomPtr->toRoomPB(retpb);
 					retpb.set_password("");
 					rspBuffer->append(retpb.SerializePartialAsString());
 				}
@@ -167,7 +169,8 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
 				} else {	// 返回房间信息
-					auto retpb = roomPtr->roomPB();
+					RoomPB retpb;
+					roomPtr->toRoomPB(retpb);
 					retpb.set_password("");
 					rspBuffer->append(retpb.SerializePartialAsString());
 				}
@@ -203,8 +206,8 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				RoomPBList allRoomPB;
 				for(auto room : _userMgr.roomMap()) {
 					auto roompb = allRoomPB.add_roompb();
-					roompb->set_id(room.second->roomPB().id());
-					roompb->set_name(room.second->roomPB().name());
+					roompb->set_id(room.second->id());
+					roompb->set_name(room.second->name());
 				}
 				rspBuffer->append(allRoomPB.SerializePartialAsString());
 			} else {
@@ -220,9 +223,15 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				RoomPB roompb;
 				roompb.ParseFromString(reqMsg);
 
-				auto roompbPtr = _userMgr.getRoomById(roompb.id());
-				if(roompbPtr) {
-					rspBuffer->append(roompbPtr->roomPB().SerializePartialAsString());
+				auto roomPtr = _userMgr.getRoomById(roompb.id());
+				if(roomPtr) {
+					RoomPB retpb;
+					roomPtr->toRoomPB(retpb);
+					PlayerPB* playerpb = new PlayerPB();
+					playerpb->set_id(ps->playerPB().id());
+					playerpb->set_name(ps->playerPB().name());
+					retpb.set_allocated_owner(playerpb);
+					rspBuffer->append(retpb.SerializePartialAsString());
 				} else {
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append("房间不存在");

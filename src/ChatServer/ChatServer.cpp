@@ -77,9 +77,9 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 						if(groupId > 0) {
 							std::shared_ptr<Room> roomPtr = _userMgr.getRoomById(groupId);
 							if(roomPtr) {
-								if (ps->isInRoom(roomPtr->roomPB().id())) {
+								if (ps->isInRoom(roomPtr->id())) {
 									msgPB.set_allocated_sender(ps->mutablePlayerPB());
-									bool isOk = sendMsgToGroup(roomPtr->roomPB(), msgPB, &errmsg);
+									bool isOk = sendMsgToGroup(roomPtr->id(), msgPB, &errmsg);
 									msgPB.release_sender(); // 释放指针的控制权，避免在MessagePB的析构函数中被析构
 									if(!isOk) {
 										header.rspcode = RspCode::ERROR;
@@ -127,7 +127,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 					RoomPBList allRoomPB;
 					for(auto room : _userMgr.roomMap()) {
 						auto roompb = allRoomPB.add_roompb();
-						roompb->CopyFrom(room.second->roomPB());
+						room.second->toRoomPB(*roompb);
 						roompb->set_password("");
 					}
 					rspBuffer->append(allRoomPB.SerializePartialAsString());
@@ -155,7 +155,8 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 						header.rspcode = RspCode::ERROR;
 						rspBuffer->append(errmsg);
 					} else {	// 返回房间信息
-						auto retpb = roomPtr->roomPB();
+						RoomPB retpb;
+						roomPtr->toRoomPB(retpb);
 						retpb.set_password("");
 						rspBuffer->append(retpb.SerializePartialAsString());
 					}
@@ -178,7 +179,8 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 						header.rspcode = RspCode::ERROR;
 						rspBuffer->append(errmsg);
 					}  else {	// 返回房间信息
-						auto retpb = roomPtr->roomPB();
+						RoomPB retpb;
+						roomPtr->toRoomPB(retpb);
 						retpb.set_password("");
 						rspBuffer->append(retpb.SerializePartialAsString());
 					}
@@ -200,7 +202,8 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 						header.rspcode = RspCode::ERROR;
 						rspBuffer->append(errmsg);
 					} else {	// 返回房间信息
-						auto retpb = roomPtr->roomPB();
+						RoomPB retpb;
+						roomPtr->toRoomPB(retpb);
 						retpb.set_password("");
 						rspBuffer->append(retpb.SerializePartialAsString());
 					}
@@ -248,14 +251,22 @@ bool ChatServer::sendMsgToGroup(const RoomPB& roomPB, const MessagePB& msgPB, st
 	return sendMsgToGroup(roomPB.id(), senderId, msgPB.SerializePartialAsString(), errmsg);
 }
 
-bool ChatServer::sendMsgToGroup(int groupId, const std::string& senderId, const std::string& msgPBStr, std::string *errmsg)
+bool ChatServer::sendMsgToGroup(int32_t groupId, const MessagePB& msgPB, std::string *errmsg)
+{
+	std::string senderId = "";
+	if(msgPB.has_sender()) {
+		senderId = msgPB.sender().id();
+	}
+	return sendMsgToGroup(groupId, senderId, msgPB.SerializePartialAsString(), errmsg);
+}
+
+bool ChatServer::sendMsgToGroup(int32_t groupId, const std::string& senderId, const std::string& msgPBStr, std::string *errmsg)
 {
 	auto room = _userMgr.getRoomById(groupId);
 	if(room) {
-		auto playerPBs = room->allPlayerPB();
-		for(auto playerPB : playerPBs) {
-			if (senderId != playerPB.id()) {
-				sendMsgToUser(playerPB.id(), msgPBStr);
+		for(auto& p : room->players()) {
+			if (senderId != p) {
+				sendMsgToUser(p, msgPBStr);
 			}
 		}
 		return true;
@@ -318,5 +329,5 @@ bool ChatServer::sendMsgToUser(const std::string& userId, const std::string& msg
 void ChatServer::createDefaultChatRoom()
 {
 	auto roomPtr = _userMgr.createRoom();
-	roomPtr->mutableRoomPB()->set_name("全服");
+	roomPtr->setName("全服");
 }

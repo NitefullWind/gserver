@@ -95,18 +95,18 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
                 TLOG_DEBUG("ChatClient创建房间成功");
                 RoomPB roompb;
 				roompb.ParseFromString(rspMsg);
-                auto customId = roompb.customid();
+                auto customId = roompb.customid(); // 游戏房间id
                 if(customId > 0) {
-                    auto roomPtr = _userMgr->getRoomById(customId);
-                    if(roomPtr) {
-                        TLOG_DEBUG(roomPtr->roomPB().name() << " 的聊天房间创建成功！")
-                        std::shared_ptr<RoomPB> roompbPtr = std::make_shared<RoomPB>(std::move(roompb));
-                        roomPtr->mutableRoomPB()->set_allocated_relatedroom(roompbPtr.get());
-                        auto ownerpb = roomPtr->roomPB().owner();
-                        auto player = _userMgr->getPlayerSessionById(ownerpb.id());
+                    auto gameRoomPtr = _userMgr->getRoomById(customId);
+                    if(gameRoomPtr) {
+                        TLOG_DEBUG(gameRoomPtr->name() << " 的聊天房间创建成功！")
+                        gameRoomPtr->setRelatedRoomID(customId);
+                        auto player = _userMgr->getPlayerSessionById(gameRoomPtr->ownerId());
                         auto psConnection = player->tcpConnectionWeakPtr().lock();
                         if(psConnection) {
-                            sendMessageToConnection(psConnection, Command::UPDATEROOM, 0, roomPtr->roomPB().SerializePartialAsString());
+                            RoomPB retpb;
+                            gameRoomPtr->toRoomPB(retpb);
+                            sendMessageToConnection(psConnection, Command::UPDATEROOM, 0, retpb.SerializePartialAsString());
                         } else {
                             TLOG_INFO("房主已不在线");
                         }

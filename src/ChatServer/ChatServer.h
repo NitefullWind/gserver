@@ -33,8 +33,8 @@ namespace gserver
 		UserManager _userMgr;
 
 		bool sendMsgToGroup(const RoomPB& roomPB, const MessagePB& msgPB, std::string *errmsg = nullptr);
-		bool sendMsgToGroup(int groupId, const MessagePB& msgPB, std::string *errmsg = nullptr);
-		bool sendMsgToGroup(int groupId, const std::string& fromUserId, const std::string& msgPBStr, std::string *errmsg = nullptr);
+		bool sendMsgToGroup(int32_t groupId, const MessagePB& msgPB, std::string *errmsg = nullptr);
+		bool sendMsgToGroup(int32_t groupId, const std::string& senderId, const std::string& msgPBStr, std::string *errmsg = nullptr);
 		bool sendMsgToUser(const PlayerPB& playerPB, const MessagePB& msgPB, std::string *errmsg = nullptr);
 		bool sendMsgToUser(const std::string& userId, const MessagePB& msgPB, std::string *errmsg = nullptr);
 		bool sendMsgToUser(const std::string& userId, const std::string& msgPBStr, std::string *errmsg = nullptr);
