@@ -19,7 +19,7 @@ namespace gserver
 	class Room;
 	class RoomPB;
 
-	class PlayerSession : private Uncopyable
+	class PlayerSession : private Uncopyable, public std::enable_shared_from_this<PlayerSession>
 	{
 	public:
 		explicit PlayerSession(UserManager *userMgr, std::weak_ptr<tinyserver::TcpConnection> connection);

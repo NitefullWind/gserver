@@ -9,13 +9,13 @@ Room::Room() :
 	_name(""),
 	_description(""),
 	_password(""),
-	_ownerId(""),
+	_owner(),
 	_players({}),
 	_serverIP(""),
 	_serverPort(0),
 	_hasPassword(false),
 	_customID(0),
-	_relatedRoomID(0)
+	_relatedRoom()
 {
 }
 
@@ -35,18 +35,9 @@ void Room::setByRoomPB(const RoomPB& roomPB)
 	_name = roomPB.name();
 	_description = roomPB.description();
 	_password = roomPB.password();
-	if (roomPB.has_owner()) {
-		_ownerId = roomPB.owner().id();
-	}
-	for (auto& p : roomPB.players()) {
-		_players.push_back(p.id());
-	}
 	_serverIP = roomPB.serverip();
 	_serverPort = roomPB.serverport();
 	_customID = roomPB.customid();
-	if (roomPB.has_relatedroom()) {
-		_relatedRoomID = roomPB.relatedroom().id();
-	}
 }
 
 void Room::toRoomPB(RoomPB& roomPB)
@@ -55,31 +46,30 @@ void Room::toRoomPB(RoomPB& roomPB)
 	roomPB.set_name(_name);
 	roomPB.set_description(_description);
 	roomPB.set_password(_password);
-	if (_ownerId != "") {
-		//TODO: set owner
-		roomPB.set_allocated_owner(nullptr);
+	if (hasOwner()) {
+		auto playerpb = new PlayerPB(owner()->playerPB());
+		roomPB.set_allocated_owner(playerpb);
 	}
-	for (auto& p : roomPB.players()) {
-		_players.push_back(p.id());
+	for (auto& pWPtr : players()) {
+		auto pPtr = pWPtr.lock();
+		if (pPtr) {
+			auto playpb = roomPB.add_players();
+			playpb->CopyFrom(pPtr->playerPB());
+		}
 	}
 	roomPB.set_serverip(_serverIP);
 	roomPB.set_serverport(_serverPort);
 	roomPB.set_customid(_customID);
-	if (_relatedRoomID != 0) {
-		//TODO: set relatedroom
-		roomPB.set_allocated_relatedroom(nullptr);
+	if (_relatedRoom.use_count() > 0) {
+		auto relatedRoomPB = new RoomPB();
+		relatedRoom()->toRoomPB(*relatedRoomPB);
+		roomPB.set_allocated_relatedroom(relatedRoomPB);
 	}
 }
 
-void Room::setOwner(const PlayerSession *player)
+bool Room::addPlayer(const std::shared_ptr<PlayerSession>& player, std::string *errmsg)
 {
-	assert(player != nullptr);
-	_ownerId = player->playerPB().id();
-}
-
-bool Room::addPlayer(const PlayerSession *player, std::string *errmsg)
-{
-	_players.push_back(player->playerPB().id());
+	_players.push_back(player);
 	if(errmsg) {
 		*errmsg = "";
 	}
@@ -94,7 +84,8 @@ size_t Room::playerCounter() const
 bool Room::removePlayer(const std::string& playerId, std::string *errmsg)
 {
 	for(auto p=_players.cbegin(); p!=_players.cend(); p++) {
-		if(*p == playerId) {
+		auto ps = p->lock();
+		if(ps->playerPB().id() == playerId) {
 			_players.erase(p); 
 			return true;
 		}
@@ -113,7 +104,8 @@ bool Room::removePlayer(const PlayerPB& playerPB, std::string *errmsg)
 bool Room::hasPlayer(const std::string& playerId)
 {
 	for(auto p=_players.cbegin(); p!=_players.cend(); p++) {
-		if(*p == playerId) {
+		auto ps = p->lock();
+		if(ps->playerPB().id() == playerId) {
 			return true;
 		}
 	}

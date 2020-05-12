@@ -100,8 +100,8 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
                     auto gameRoomPtr = _userMgr->getRoomById(customId);
                     if(gameRoomPtr) {
                         TLOG_DEBUG(gameRoomPtr->name() << " 的聊天房间创建成功！")
-                        gameRoomPtr->setRelatedRoomID(customId);
-                        auto player = _userMgr->getPlayerSessionById(gameRoomPtr->ownerId());
+                        gameRoomPtr->setRelatedRoom(_userMgr->getRoomById(roompb.id()));
+                        auto player = gameRoomPtr->owner();
                         auto psConnection = player->tcpConnectionWeakPtr().lock();
                         if(psConnection) {
                             RoomPB retpb;

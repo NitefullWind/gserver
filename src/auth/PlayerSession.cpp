@@ -29,7 +29,7 @@ std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *err
 	auto roomPtr = _userMgr->createRoom();
 	roomPB->set_id(roomPtr->id());
 	roomPtr->setByRoomPB(*roomPB);
-	roomPtr->setOwner(this);
+	roomPtr->setOwner(shared_from_this());
 	TLOG_DEBUG("Create room id: " << roomPtr->id() << ", name: " << roomPtr->name() << ", description: " << roomPtr->description() << ", password: " << roomPtr->password());
 	auto joinRoomPtr = joinRoom(roomPB->id(), errmsg);
 	return joinRoomPtr;
@@ -70,11 +70,11 @@ std::shared_ptr<Room> PlayerSession::joinRoom(int roomId, std::string *errmsg)
 		return nullptr;
 	} else {
 		_roomPtrList.push_back(room);
-		room->addPlayer(this);
+		room->addPlayer(shared_from_this());
 
 		TLOG_DEBUG("Player id: " << _playerPB.id() << ", name:" << _playerPB.name() << " joined room id: " << _playerPB.id() << ", name: " << _playerPB.name());
 		for(auto& p : room->players()) {
-			TLOG_DEBUG("===room player: " << p);
+			TLOG_DEBUG("===room player: " << p.lock()->playerPB().id());
 		}
 		return room;
 	}

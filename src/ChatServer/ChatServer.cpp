@@ -265,8 +265,15 @@ bool ChatServer::sendMsgToGroup(int32_t groupId, const std::string& senderId, co
 	auto room = _userMgr.getRoomById(groupId);
 	if(room) {
 		for(auto& p : room->players()) {
-			if (senderId != p) {
-				sendMsgToUser(p, msgPBStr);
+			auto ps = p.lock();
+			if (!ps) {
+				if(errmsg) {
+					*errmsg = "用户不存在";
+				}
+				return false;
+			}
+			if (senderId != ps->playerPB().id()) {
+				sendMsgToUser(senderId, msgPBStr);
 			}
 		}
 		return true;

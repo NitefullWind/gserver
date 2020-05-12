@@ -34,11 +34,12 @@ namespace gserver
 		const std::string& password() const { return _password; }
 		void setPassword(const std::string& password) { _password = password; }
 
-		const std::string& ownerId() const { return _ownerId; }
-		void setOwnerId(const std::string& ownerId) { _ownerId = ownerId; }
+		std::shared_ptr<PlayerSession> owner() const { return _owner.lock(); }
+		void setOwner(const std::shared_ptr<PlayerSession>& owner) { _owner = owner; }
+		bool hasOwner() const { return _owner.use_count() > 0; }
 
-		const std::vector<std::string>& players() const { return _players; }
-		const std::string& players(size_t index) const { return _players[index]; }
+		const std::vector<std::weak_ptr<PlayerSession>>& players() const { return _players; }
+		std::shared_ptr<PlayerSession> players(size_t index) const { return _players[index].lock(); }
 
 		const std::string& serverIP() const { return _serverIP; }
 		void setServerIP(const std::string& serverIP) { _serverIP = serverIP; }
@@ -52,15 +53,20 @@ namespace gserver
 		int32_t customID() const { return _customID; }
 		void setCustomID(int customID) { _customID = customID; }
 
-		int32_t relatedRoomID() const { return _relatedRoomID; }
-		void setRelatedRoomID(int relatedRoomID) { _relatedRoomID = relatedRoomID; }
+		std::shared_ptr<Room> relatedRoom() const { return _relatedRoom.lock(); }
+		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _relatedRoom = relatedRoom; }
 
+        /**
+         * @brief 使用RoomPB设置room信息
+         * 注意：这个函数只会设置基础类型的信息，对象的指针不会被设置，需要单独设置
+		 * 
+         * @param roomPB Room的Protobuf message对象
+		 * 
+         */
 		void setByRoomPB(const RoomPB& roomPB);
 		void toRoomPB(RoomPB& roomPB);
 
-		void setOwner(const PlayerSession *player);
-
-		bool addPlayer(const PlayerSession *player, std::string *errmsg = nullptr);
+		bool addPlayer(const std::shared_ptr<PlayerSession>& player, std::string *errmsg = nullptr);
 		size_t playerCounter() const;
 
 		bool removePlayer(const std::string& playerId, std::string *errmsg = nullptr);
@@ -73,13 +79,13 @@ namespace gserver
 		std::string _name;
 		std::string _description;
 		std::string _password;
-		std::string _ownerId;									// 房间拥有者
-		std::vector<std::string> _players;						// 房间中的玩家
+		std::weak_ptr<PlayerSession> _owner;					// 房间拥有者
+		std::vector<std::weak_ptr<PlayerSession>> _players;		// 房间中的玩家
 		std::string _serverIP;									// 房间所在服务器ip
 		int32_t _serverPort;									// 房间所在服务器端口
 		bool _hasPassword;										// 是否有密码
-		int32_t _customID;									// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
-		int32_t _relatedRoomID;								// 关联房间，比如用于存储游戏房间的聊天房间信息
+		int32_t _customID;										// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
+		std::weak_ptr<Room> _relatedRoom;						// 关联房间，比如用于存储游戏房间的聊天房间信息
 	};
 }
 
