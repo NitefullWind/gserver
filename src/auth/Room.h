@@ -56,16 +56,29 @@ namespace gserver
 		std::shared_ptr<Room> relatedRoom() const { return _relatedRoom.lock(); }
 		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _relatedRoom = relatedRoom; }
 
-        /**
-         * @brief 使用RoomPB设置room信息
-         * 注意：这个函数只会设置基础类型的信息，对象的指针不会被设置，需要单独设置
+		/**
+		 * @brief 使用RoomPB设置room信息
 		 * 
-         * @param roomPB Room的Protobuf message对象
-		 * 
-         */
+		 * @param roomPB Room的Protobuf message对象
+         * @note 这个函数只会设置基础类型的信息，对象的指针不会被设置，需要单独设置
+		 */
 		void setByRoomPB(const RoomPB& roomPB);
+
+		/**
+		 * @brief 将房间信息保存到RoomPB中
+		 * 
+		 * @param roomPB Room的Protobuf message对象
+		 */
 		void toRoomPB(RoomPB& roomPB);
 
+		/**
+		 * @brief 添加玩家指针
+		 * 
+		 * @param player 玩家指针
+		 * @param errmsg 失败原因
+		 * @return true 成功
+		 * @return false 失败
+		 */
 		bool addPlayer(const std::shared_ptr<PlayerSession>& player, std::string *errmsg = nullptr);
 		size_t playerCounter() const;
 
