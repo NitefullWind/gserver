@@ -56,7 +56,9 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 							msgPB.set_allocated_sender(ps->mutablePlayerPB());
 							bool isOk = sendMsgToUser(rcvPlayerPB->id(), msgPB, &errmsg);
 							msgPB.release_sender();
-							if(!isOk) {
+							if(isOk) {
+								header.rspcode = RspCode::SUCCESS;
+							} else {
 								header.rspcode = RspCode::ERROR;
 								rspBuffer->append(errmsg);
 							}
@@ -77,7 +79,9 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 									msgPB.set_allocated_sender(ps->mutablePlayerPB());
 									bool isOk = sendMsgToGroup(roomPtr->id(), msgPB, &errmsg);
 									msgPB.release_sender(); // 释放指针的控制权，避免在ChatMsgPB的析构函数中被析构
-									if(!isOk) {
+									if(isOk) {
+										header.rspcode = RspCode::SUCCESS;
+									} else {
 										header.rspcode = RspCode::ERROR;
 										rspBuffer->append(errmsg);
 									}
@@ -269,7 +273,7 @@ bool ChatServer::sendMsgToGroup(int32_t groupId, const std::string& senderId, co
 				return false;
 			}
 			if (senderId != ps->playerPB().id()) {
-				sendMsgToUser(senderId, msgPBStr);
+				sendMsgToUser(ps->playerPB().id(), msgPBStr);
 			}
 		}
 		return true;
