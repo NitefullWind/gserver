@@ -9,6 +9,7 @@
 
 
 using namespace gserver;
+using namespace gserver::protobuf;
 using namespace tinyserver;
 
 UserManager::UserManager() :

@@ -11,7 +11,9 @@ namespace gserver
 {
 	class UserManager;
 	class PlayerSession;
-	class PlayerPB;
+	namespace protobuf {
+		class PlayerPB;
+	}
 
 	class Room : private Uncopyable
 	{
@@ -19,7 +21,7 @@ namespace gserver
 		friend  class UserManager;
 
 		explicit Room();
-		explicit Room(const RoomPB& roomPB);
+		explicit Room(const protobuf::RoomPB& roomPB);
 		~Room();
 
 		int32_t id() const { return _id; }
@@ -53,8 +55,8 @@ namespace gserver
 		int32_t customID() const { return _customID; }
 		void setCustomID(int customID) { _customID = customID; }
 
-		std::shared_ptr<Room> relatedRoom() const { return _relatedRoom.lock(); }
-		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _relatedRoom = relatedRoom; }
+		std::shared_ptr<Room> relatedRoom() const { return _chatRoom.lock(); }
+		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _chatRoom = relatedRoom; }
 
 		/**
 		 * @brief 使用RoomPB设置room信息
@@ -62,14 +64,14 @@ namespace gserver
 		 * @param roomPB Room的Protobuf message对象
          * @note 这个函数只会设置基础类型的信息，对象的指针不会被设置，需要单独设置
 		 */
-		void setByRoomPB(const RoomPB& roomPB);
+		void setByRoomPB(const protobuf::RoomPB& roomPB);
 
 		/**
 		 * @brief 将房间信息保存到RoomPB中
 		 * 
 		 * @param roomPB Room的Protobuf message对象
 		 */
-		void toRoomPB(RoomPB& roomPB);
+		void toRoomPB(protobuf::RoomPB& roomPB);
 
 		/**
 		 * @brief 添加玩家指针
@@ -83,10 +85,10 @@ namespace gserver
 		size_t playerCounter() const;
 
 		bool removePlayer(const std::string& playerId, std::string *errmsg = nullptr);
-		bool removePlayer(const PlayerPB& playerPB, std::string *errmsg = nullptr);
+		bool removePlayer(const protobuf::PlayerPB& playerPB, std::string *errmsg = nullptr);
 
 		bool hasPlayer(const std::string& playerId);
-		bool hasPlayer(const PlayerPB& playerPB);
+		bool hasPlayer(const protobuf::PlayerPB& playerPB);
 	private:
 		int32_t _id;
 		std::string _name;
@@ -98,7 +100,7 @@ namespace gserver
 		int32_t _serverPort;									// 房间所在服务器端口
 		bool _hasPassword;										// 是否有密码
 		int32_t _customID;										// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
-		std::weak_ptr<Room> _relatedRoom;						// 关联房间，比如用于存储游戏房间的聊天房间信息
+		std::weak_ptr<Room> _chatRoom;						// 关联房间，比如用于存储游戏房间的聊天房间信息
 	};
 }
 

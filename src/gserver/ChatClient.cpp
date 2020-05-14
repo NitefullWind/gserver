@@ -13,6 +13,7 @@
 #include "proto/roompb.pb.h"
 
 using namespace gserver;
+using namespace gserver::protobuf;
 using namespace tinyserver;
 
 ChatClient::ChatClient(EventLoop *loop, UserManager *userMgr) :
@@ -93,28 +94,8 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
         {
             if(header.rspcode == RspCode::SUCCESS) {
                 TLOG_DEBUG("ChatClient创建房间成功");
-                RoomPB roompb;
-				roompb.ParseFromString(rspMsg);
-                auto customId = roompb.customid(); // 游戏房间id
-                if(customId > 0) {
-                    auto gameRoomPtr = _userMgr->getRoomById(customId);
-                    if(gameRoomPtr) {
-                        TLOG_DEBUG(gameRoomPtr->name() << " 的聊天房间创建成功！")
-                        gameRoomPtr->setRelatedRoom(_userMgr->getRoomById(roompb.id()));
-                        auto player = gameRoomPtr->owner();
-                        auto psConnection = player->tcpConnectionWeakPtr().lock();
-                        if(psConnection) {
-                            RoomPB retpb;
-                            gameRoomPtr->toRoomPB(retpb);
-                            sendMessageToConnection(psConnection, Command::UPDATEROOM, 0, retpb.SerializePartialAsString());
-                        } else {
-                            TLOG_INFO("房主已不在线");
-                        }
-                    } else {
-                        TLOG_INFO(roompb.customid() << " 所对应的游戏房间不存在！")
-                        //!TODO 删除创建的房间
-                    }
-                }
+                //TODO: what to do?
+                if (_userMgr){}
             } else {
                 TLOG_ERROR("ChatClient创建房间失败：" << rspMsg);
             }

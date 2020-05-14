@@ -12,6 +12,7 @@
 #include "proto/roompb.pb.h"
 
 using namespace gserver;
+using namespace gserver::protobuf;
 using namespace tinyserver;
 
 GServer::GServer(uint16_t port):
@@ -113,7 +114,6 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				if(roomPtr) {
 					RoomPB chatRoomPB;
 					chatRoomPB.ParseFromString(reqMsg);
-					chatRoomPB.set_customid(roomPtr->id());
 					isOk = _clientChat.createRoom(&chatRoomPB, &errmsg);
 				}
 				if(!isOk) {

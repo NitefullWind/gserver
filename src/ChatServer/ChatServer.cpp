@@ -9,6 +9,7 @@
 #include "parseMessageHeader.h"
 
 using namespace gserver;
+using namespace gserver::protobuf;
 using namespace tinyserver;
 
 ChatServer::ChatServer()
@@ -43,16 +44,17 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 		{
 			auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
 			if(ps) {
-				MessagePB msgPB;
+				ChatMsgPB msgPB;
 				msgPB.ParseFromString(reqMsg);
 				switch (msgPB.messagetype())
 				{
-				case MessagePB::MT_PRIVATE_CHAT:
+				case ChatMsgPB::MT_PRIVATE_CHAT:
 					{
-						std::string receiverId = msgPB.receiverid();
-						if(receiverId != "") {
+						// 私聊只可以发给玩家
+						auto rcvPlayerPB = msgPB.mutable_rcvplayer();
+						if(rcvPlayerPB) {
 							msgPB.set_allocated_sender(ps->mutablePlayerPB());
-							bool isOk = sendMsgToUser(receiverId, msgPB, &errmsg);
+							bool isOk = sendMsgToUser(rcvPlayerPB->id(), msgPB, &errmsg);
 							msgPB.release_sender();
 							if(!isOk) {
 								header.rspcode = RspCode::ERROR;
@@ -60,27 +62,21 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 							}
 						} else {
 							header.rspcode = RspCode::ERROR;
-							rspBuffer->append("用户id错误");
+							rspBuffer->append("未指定用户");
 						}
 					}
 					break;
-				case MessagePB::MT_GROUP_CHAT:
+				case ChatMsgPB::MT_GROUP_CHAT:
 					{
-						int groupId = 0;
-						try {
-							groupId = std::stoi(msgPB.receiverid());
-						} catch (std::invalid_argument) {
-							TLOG_DEBUG("Invalid group id: " << msgPB.receiverid());
-						} catch (std::out_of_range) {
-							TLOG_DEBUG("Group id: " << msgPB.receiverid() << " out of range");
-						}
-						if(groupId > 0) {
-							std::shared_ptr<Room> roomPtr = _userMgr.getRoomById(groupId);
+						// 群聊是发给房间
+						auto rcvRoomPB = msgPB.mutable_rcvroom();
+						if(rcvRoomPB) {
+							std::shared_ptr<Room> roomPtr = _userMgr.getRoomById(rcvRoomPB->id());
 							if(roomPtr) {
 								if (ps->isInRoom(roomPtr->id())) {
 									msgPB.set_allocated_sender(ps->mutablePlayerPB());
 									bool isOk = sendMsgToGroup(roomPtr->id(), msgPB, &errmsg);
-									msgPB.release_sender(); // 释放指针的控制权，避免在MessagePB的析构函数中被析构
+									msgPB.release_sender(); // 释放指针的控制权，避免在ChatMsgPB的析构函数中被析构
 									if(!isOk) {
 										header.rspcode = RspCode::ERROR;
 										rspBuffer->append(errmsg);
@@ -90,13 +86,13 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 									rspBuffer->append("用户不在该房间中");
 								}
 							} else {
-								TLOG_DEBUG("Don't find room: " << msgPB.receiverid());
+								TLOG_DEBUG("Don't find room: " << rcvRoomPB->id());
 								header.rspcode = RspCode::ERROR;
 								rspBuffer->append("房间不存在");
 							}
 						} else {
 							header.rspcode = RspCode::ERROR;
-							rspBuffer->append("房间号错误");
+							rspBuffer->append("未指定房间");
 						}
 					}
 					break;
@@ -242,7 +238,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 }
 
 
-bool ChatServer::sendMsgToGroup(const RoomPB& roomPB, const MessagePB& msgPB, std::string *errmsg)
+bool ChatServer::sendMsgToGroup(const RoomPB& roomPB, const ChatMsgPB& msgPB, std::string *errmsg)
 {
 	std::string senderId = "";
 	if(msgPB.has_sender()) {
@@ -251,7 +247,7 @@ bool ChatServer::sendMsgToGroup(const RoomPB& roomPB, const MessagePB& msgPB, st
 	return sendMsgToGroup(roomPB.id(), senderId, msgPB.SerializePartialAsString(), errmsg);
 }
 
-bool ChatServer::sendMsgToGroup(int32_t groupId, const MessagePB& msgPB, std::string *errmsg)
+bool ChatServer::sendMsgToGroup(int32_t groupId, const ChatMsgPB& msgPB, std::string *errmsg)
 {
 	std::string senderId = "";
 	if(msgPB.has_sender()) {
@@ -285,12 +281,12 @@ bool ChatServer::sendMsgToGroup(int32_t groupId, const std::string& senderId, co
 	return false;
 }
 
-bool ChatServer::sendMsgToUser(const PlayerPB& playerPB, const MessagePB& msgPB, std::string *errmsg)
+bool ChatServer::sendMsgToUser(const PlayerPB& playerPB, const ChatMsgPB& msgPB, std::string *errmsg)
 {
 	return sendMsgToUser(playerPB.id(), msgPB, errmsg);
 }
 
-bool ChatServer::sendMsgToUser(const std::string& userId, const MessagePB& msgPB, std::string *errmsg)
+bool ChatServer::sendMsgToUser(const std::string& userId, const ChatMsgPB& msgPB, std::string *errmsg)
 {
 	const std::string& msgPBStr = msgPB.SerializePartialAsString();
 	return sendMsgToUser(userId, msgPBStr, errmsg);

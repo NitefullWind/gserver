@@ -17,7 +17,10 @@ namespace gserver
 {
 	class UserManager;
 	class Room;
-	class RoomPB;
+	namespace protobuf {
+		class RoomPB;
+		class PlayerPB;
+	}
 
 	class PlayerSession : private Uncopyable, public std::enable_shared_from_this<PlayerSession>
 	{
@@ -25,13 +28,13 @@ namespace gserver
 		explicit PlayerSession(UserManager *userMgr, std::weak_ptr<tinyserver::TcpConnection> connection);
 		~PlayerSession();
 
-		void setPlayerPB(const PlayerPB& playerPB) { _playerPB = playerPB; }
-		void setPlayerPB(PlayerPB&& playerPB) { _playerPB = std::move(playerPB); }
-		const PlayerPB& playerPB() const { return _playerPB; }
-		PlayerPB *mutablePlayerPB() { return &_playerPB; }
+		void setPlayerPB(const protobuf::PlayerPB& playerPB) { _playerPB = playerPB; }
+		void setPlayerPB(protobuf::PlayerPB&& playerPB) { _playerPB = std::move(playerPB); }
+		const protobuf::PlayerPB& playerPB() const { return _playerPB; }
+		protobuf::PlayerPB *mutablePlayerPB() { return &_playerPB; }
 
-		std::shared_ptr<Room> createRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
-		std::shared_ptr<Room> updateRoom(RoomPB *roomPB, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> createRoom(protobuf::RoomPB *roomPB, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> updateRoom(protobuf::RoomPB *roomPB, std::string *errmsg = nullptr);
 		std::shared_ptr<Room> joinRoom(int roomId, std::string *errmsg = nullptr);
 		std::shared_ptr<Room> exitRoom(int roomId, std::string *errmsg = nullptr);
 		void exitAllRoom();
@@ -42,7 +45,7 @@ namespace gserver
 		const std::weak_ptr<tinyserver::TcpConnection> tcpConnectionWeakPtr() const { return _tcpConnection; }
 	private:
 		UserManager *_userMgr;
-		PlayerPB _playerPB;
+		protobuf::PlayerPB _playerPB;
 		std::weak_ptr<tinyserver::TcpConnection> _tcpConnection;
 		std::list<std::weak_ptr<Room> > _roomPtrList;
 	};

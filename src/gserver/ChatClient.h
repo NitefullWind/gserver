@@ -11,8 +11,10 @@
  */
 namespace gserver
 {
-    class RoomPB;
     class UserManager;
+    namespace protobuf {
+        class RoomPB;
+    }
 
     class ChatClient
     {
@@ -33,7 +35,7 @@ namespace gserver
          * @return true 创建成功
          * @return false 创建失败
          */
-        bool createRoom(RoomPB *roompb, std::string *errmsg = nullptr);
+        bool createRoom(protobuf::RoomPB *roompb, std::string *errmsg = nullptr);
     private:
         tinyserver::TcpClient _tcpClient;
         bool _started;

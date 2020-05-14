@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "playerpb.proto";
+import "roompb.proto";
+
+package gserver.protobuf;
+
+// 聊天信息
+message ChatMsgPB {
+	enum MessageType {
+		MT_UNKNOWN = 0;
+		MT_ERROR_MESSAGE = 1;
+		MT_SYSTEM_NOTIFICATION = 2;
+		MT_PRIVATE_CHAT = 3;
+		MT_GROUP_CHAT = 4;
+	}
+
+	enum DataType {
+		DT_UNKNOWN = 0;
+		DT_TEXT = 1;
+		DT_IMAGE = 2;
+		DT_SOUND = 3;
+		DT_VIDEO = 4;
+	}
+
+	int64 timestamp = 1;			// 时间戳
+	MessageType messageType = 2;	// 消息类型
+	DataType dataType = 3;			// 数据类型
+	PlayerPB sender = 4;			// 发送者
+	oneof receiver {				// 接收者，只能是一个用户或一个房间
+		PlayerPB rcvPlayer = 5;		// 目标玩家
+		RoomPB rcvRoom = 6;			// 目标房间
+	}
+	string data = 7;				// 消息内容
+}

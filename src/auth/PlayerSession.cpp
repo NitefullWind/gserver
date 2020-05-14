@@ -7,6 +7,7 @@
 #include "Room.h"
 
 using namespace gserver;
+using namespace gserver::protobuf;
 using namespace tinyserver;
 
 PlayerSession::PlayerSession(UserManager *userMgr, std::weak_ptr<tinyserver::TcpConnection> connection) :
@@ -20,7 +21,7 @@ PlayerSession::~PlayerSession()
 {
 }
 
-std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::createRoom(protobuf::RoomPB *roomPB, std::string *errmsg)
 {
 	if(roomPB->name() == "") {
 		*errmsg = "房间名不能为空";
@@ -35,7 +36,7 @@ std::shared_ptr<Room> PlayerSession::createRoom(RoomPB *roomPB, std::string *err
 	return joinRoomPtr;
 }
 
-std::shared_ptr<Room> PlayerSession::updateRoom(RoomPB *roomPB, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::updateRoom(protobuf::RoomPB *roomPB, std::string *errmsg)
 {
 	auto roomPtr = _userMgr->getRoomById(roomPB->id());
 	if(!roomPtr) {

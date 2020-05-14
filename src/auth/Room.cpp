@@ -3,6 +3,7 @@
 #include "proto/playerpb.pb.h"
 
 using namespace gserver;
+using namespace gserver::protobuf;
 
 Room::Room() :
 	_id(0),
@@ -15,7 +16,7 @@ Room::Room() :
 	_serverPort(0),
 	_hasPassword(false),
 	_customID(0),
-	_relatedRoom()
+	_chatRoom()
 {
 }
 
@@ -37,7 +38,6 @@ void Room::setByRoomPB(const RoomPB& roomPB)
 	_password = roomPB.password();
 	_serverIP = roomPB.serverip();
 	_serverPort = roomPB.serverport();
-	_customID = roomPB.customid();
 }
 
 void Room::toRoomPB(RoomPB& roomPB)
@@ -59,11 +59,10 @@ void Room::toRoomPB(RoomPB& roomPB)
 	}
 	roomPB.set_serverip(_serverIP);
 	roomPB.set_serverport(_serverPort);
-	roomPB.set_customid(_customID);
-	if (_relatedRoom.use_count() > 0) {
-		auto relatedRoomPB = new RoomPB();
-		relatedRoom()->toRoomPB(*relatedRoomPB);
-		roomPB.set_allocated_relatedroom(relatedRoomPB);
+	if (_chatRoom.use_count() > 0) {
+		auto chatRoomPB = new RoomPB();
+		relatedRoom()->toRoomPB(*chatRoomPB);
+		roomPB.set_allocated_chatroom(chatRoomPB);
 	}
 }
 

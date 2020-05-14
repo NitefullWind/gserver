@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gserver;
+package gserver.protobuf;
 
 message PlayerPB {
 	string id = 1;
