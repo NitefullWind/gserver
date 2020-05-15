@@ -1,6 +1,7 @@
 #ifndef GSERVER_USERMANAGER_H
 #define GSERVER_USERMANAGER_H
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -26,12 +27,12 @@ namespace gserver
 		std::shared_ptr<PlayerSession> getPlayerSessionById(const std::string& id);
 		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg);
 		std::shared_ptr<Room> createRoom();
-		std::shared_ptr<Room> getRoomById(int id);
-		std::map<int, std::shared_ptr<Room> > roomMap();
+		std::shared_ptr<Room> getRoomById(uint32_t id);
+		std::map<uint32_t, std::shared_ptr<Room> > roomMap();
 	private:
 		std::mutex _mutex;
-		int _roomIndex;
-		std::map<int, std::shared_ptr<Room> > _roomMap;
+		std::atomic_uint32_t _roomIndex;
+		std::map<uint32_t, std::shared_ptr<Room> > _roomMap;
 		std::map<std::string, std::shared_ptr<PlayerSession> > _playerSessionMap;
 	};
 }

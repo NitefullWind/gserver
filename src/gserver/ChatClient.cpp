@@ -93,9 +93,12 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
     case Command::CREATEROOM:
         {
             if(header.rspcode == RspCode::SUCCESS) {
-                TLOG_DEBUG("ChatClient创建房间成功");
+                RoomPB roompb;
+                roompb.ParseFromString(rspMsg);
+                TLOG_DEBUG("ChatClient创建房间[" << roompb.id() << "]成功");
                 //TODO: what to do?
                 if (_userMgr){}
+
             } else {
                 TLOG_ERROR("ChatClient创建房间失败：" << rspMsg);
             }

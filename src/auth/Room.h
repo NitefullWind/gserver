@@ -24,8 +24,8 @@ namespace gserver
 		explicit Room(const protobuf::RoomPB& roomPB);
 		~Room();
 
-		int32_t id() const { return _id; }
-		void setId(int id) { _id = id; }
+		uint32_t id() const { return _id; }
+		void setId(uint32_t id) { _id = id; }
 
 		const std::string& name() const { return _name; }
 		void setName(const std::string& name) { _name = name; }
@@ -46,14 +46,11 @@ namespace gserver
 		const std::string& serverIP() const { return _serverIP; }
 		void setServerIP(const std::string& serverIP) { _serverIP = serverIP; }
 
-		int32_t serverPort() const { return _serverPort; }
-		void setServerPort(int serverPort) { _serverPort = serverPort; }
+		uint32_t serverPort() const { return _serverPort; }
+		void setServerPort(uint32_t serverPort) { _serverPort = serverPort; }
 
 		bool hasPassword() const { return _hasPassword; }
 		void setHasPassword(bool hasPassword) { _hasPassword = hasPassword; }
-
-		int32_t customID() const { return _customID; }
-		void setCustomID(int customID) { _customID = customID; }
 
 		std::shared_ptr<Room> relatedRoom() const { return _chatRoom.lock(); }
 		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _chatRoom = relatedRoom; }
@@ -90,17 +87,16 @@ namespace gserver
 		bool hasPlayer(const std::string& playerId);
 		bool hasPlayer(const protobuf::PlayerPB& playerPB);
 	private:
-		int32_t _id;
+		uint32_t _id;
 		std::string _name;
 		std::string _description;
 		std::string _password;
 		std::weak_ptr<PlayerSession> _owner;					// 房间拥有者
 		std::vector<std::weak_ptr<PlayerSession>> _players;		// 房间中的玩家
 		std::string _serverIP;									// 房间所在服务器ip
-		int32_t _serverPort;									// 房间所在服务器端口
+		uint32_t _serverPort;									// 房间所在服务器端口
 		bool _hasPassword;										// 是否有密码
-		int32_t _customID;										// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
-		std::weak_ptr<Room> _chatRoom;						// 关联房间，比如用于存储游戏房间的聊天房间信息
+		std::weak_ptr<Room> _chatRoom;							// 游戏房间的聊天房间
 	};
 }
 

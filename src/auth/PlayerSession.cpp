@@ -48,7 +48,7 @@ std::shared_ptr<Room> PlayerSession::updateRoom(protobuf::RoomPB *roomPB, std::s
 	return roomPtr;
 }
 
-std::shared_ptr<Room> PlayerSession::joinRoom(int roomId, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::joinRoom(uint32_t roomId, std::string *errmsg)
 {
 	if(roomId <= 0) {
 		if(errmsg) {
@@ -82,7 +82,7 @@ std::shared_ptr<Room> PlayerSession::joinRoom(int roomId, std::string *errmsg)
 	return nullptr;
 }
 
-std::shared_ptr<Room> PlayerSession::exitRoom(int roomId, std::string *errmsg)
+std::shared_ptr<Room> PlayerSession::exitRoom(uint32_t roomId, std::string *errmsg)
 {
 	for(auto it = _roomPtrList.begin(); it != _roomPtrList.end(); it++) {
 		auto roomPtr = it->lock();
@@ -109,7 +109,7 @@ void PlayerSession::exitAllRoom()
 	_roomPtrList.clear();
 }
 
-bool PlayerSession::isInRoom(int roomId)
+bool PlayerSession::isInRoom(uint32_t roomId)
 {
 	if(roomId <= 0) {
 		return false;

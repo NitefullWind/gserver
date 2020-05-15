@@ -35,10 +35,10 @@ namespace gserver
 
 		std::shared_ptr<Room> createRoom(protobuf::RoomPB *roomPB, std::string *errmsg = nullptr);
 		std::shared_ptr<Room> updateRoom(protobuf::RoomPB *roomPB, std::string *errmsg = nullptr);
-		std::shared_ptr<Room> joinRoom(int roomId, std::string *errmsg = nullptr);
-		std::shared_ptr<Room> exitRoom(int roomId, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> joinRoom(uint32_t roomId, std::string *errmsg = nullptr);
+		std::shared_ptr<Room> exitRoom(uint32_t roomId, std::string *errmsg = nullptr);
 		void exitAllRoom();
-		bool isInRoom(int roomId);
+		bool isInRoom(uint32_t roomId);
 		
 		const std::list<std::weak_ptr<Room> >& RoomWeakPtrList() const { return _roomPtrList; }
 

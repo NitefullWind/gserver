@@ -15,7 +15,6 @@ Room::Room() :
 	_serverIP(""),
 	_serverPort(0),
 	_hasPassword(false),
-	_customID(0),
 	_chatRoom()
 {
 }

@@ -101,10 +101,9 @@ std::shared_ptr<PlayerSession> UserManager::getLoggedPlayer(const tinyserver::Tc
 std::shared_ptr<Room> UserManager::createRoom()
 {
 	auto roomPtr = std::make_shared<Room>();
-	int id = 0;
+	uint32_t id = _roomIndex.fetch_add(1); // 原子索引加1，并返回原先的值
 	{
 		std::lock_guard<std::mutex> lk(_mutex);
-		id = _roomIndex++;
 		assert(_roomMap.find(id) == _roomMap.end());
 		_roomMap[id] = roomPtr;
 	}
@@ -112,7 +111,7 @@ std::shared_ptr<Room> UserManager::createRoom()
 	return roomPtr;
 }
 
-std::shared_ptr<Room> UserManager::getRoomById(int id)  {
+std::shared_ptr<Room> UserManager::getRoomById(uint32_t id)  {
 	try {
 		std::lock_guard<std::mutex> lk(_mutex);
 		return _roomMap.at(id);
@@ -121,7 +120,7 @@ std::shared_ptr<Room> UserManager::getRoomById(int id)  {
 	}
 }
 
-std::map<int, std::shared_ptr<Room> > UserManager::roomMap()
+std::map<uint32_t, std::shared_ptr<Room> > UserManager::roomMap()
 {
 	std::lock_guard<std::mutex> lk(_mutex);
 	return _roomMap;
