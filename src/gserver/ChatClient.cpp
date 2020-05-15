@@ -96,9 +96,23 @@ void ChatClient::processResponse(MessageHeader& header, const tinyserver::TcpCon
                 RoomPB roompb;
                 roompb.ParseFromString(rspMsg);
                 TLOG_DEBUG("ChatClient创建房间[" << roompb.id() << "]成功");
-                //TODO: what to do?
-                if (_userMgr){}
-
+                auto gameRoomID = roompb.gameroomid();
+                if (gameRoomID == 0) {
+                    TLOG_WARN("聊天房间所属的游戏房间id未设置");
+                } else {
+                    auto gameRoom = _userMgr->getRoomById(gameRoomID);
+                    gameRoom->setChatRoomID(roompb.id());
+                    RoomPB retpb;
+                    gameRoom->toRoomPB(retpb);
+                    retpb.set_password("");
+                    // 通知所有游戏房间中的用户聊天房间已创建好
+                    for(auto player_wptr : gameRoom->players()) {
+                        auto player_ptr = player_wptr.lock();
+                        if (player_ptr) {
+                            sendMessageToConnection(player_ptr->tcpConnectionWeakPtr().lock(), gserver::Command::UPDATEROOM, 0, retpb.SerializePartialAsString());
+                        }
+                    }
+                }
             } else {
                 TLOG_ERROR("ChatClient创建房间失败：" << rspMsg);
             }

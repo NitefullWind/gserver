@@ -37,6 +37,8 @@ void ChatServer::onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 
 void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, Buffer *rspBuffer)
 {
+	TLOG_TRACE("=========================================================================");
+	TLOG_TRACE("cmd:" << (uint16_t)header.cmd << " reqid: " << header.reqid << " datalen: " << header.datalen << " ver: " << header.clientversion);
 	std::string errmsg;
 	switch (header.cmd)
 	{
@@ -87,7 +89,7 @@ void ChatServer::processRequest(MessageHeader& header, const tinyserver::TcpConn
 									}
 								} else {
 									header.rspcode = RspCode::ERROR;
-									rspBuffer->append("用户不在该房间中");
+									rspBuffer->append("你不能向该房间发送消息，因为你未加入该房间");
 								}
 							} else {
 								TLOG_DEBUG("Don't find room: " << rcvRoomPB->id());
@@ -266,14 +268,10 @@ bool ChatServer::sendMsgToGroup(int32_t groupId, const std::string& senderId, co
 	if(room) {
 		for(auto& p : room->players()) {
 			auto ps = p.lock();
-			if (!ps) {
-				if(errmsg) {
-					*errmsg = "用户不存在";
+			if (ps) {
+				if (senderId != ps->playerPB().id()) {
+					sendMsgToUser(ps->playerPB().id(), msgPBStr);
 				}
-				return false;
-			}
-			if (senderId != ps->playerPB().id()) {
-				sendMsgToUser(ps->playerPB().id(), msgPBStr);
 			}
 		}
 		return true;

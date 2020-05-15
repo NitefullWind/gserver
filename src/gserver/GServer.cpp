@@ -72,6 +72,8 @@ void GServer::onDisconnection(const tinyserver::TcpConnectionPtr& tcpConnPtr)
 
 void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnectionPtr& tcpConnPtr, const std::string& reqMsg, Buffer *rspBuffer)
 {
+	TLOG_TRACE("=========================================================================");
+	TLOG_TRACE("cmd:" << (uint16_t)header.cmd << " reqid: " << header.reqid << " datalen: " << header.datalen << " ver: " << header.clientversion);
 	std::string errmsg;
 	switch (header.cmd)
 	{
@@ -82,14 +84,13 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				header.rspcode = RspCode::ERROR;
 				rspBuffer->append(errmsg);
 			} else {
-				//!TODO 返回登录成功信息
-				// RoomPBList allRoomPB;
-				// for(auto room : _userMgr.roomMap()) {
-				// 	auto roompb = allRoomPB.add_roompb();
-				// 	roompb->CopyFrom(room.second->roomPB());
-				// 	roompb->set_password("");
-				// }
-				// rspBuffer->append(allRoomPB.SerializePartialAsString());
+				RoomPBList allRoomPB;
+				for(auto room : _userMgr.roomMap()) {
+					auto roompb = allRoomPB.add_roompb();
+					room.second->toRoomPB(*roompb);
+					roompb->set_password("");
+				}
+				rspBuffer->append(allRoomPB.SerializePartialAsString());
 			}
 		}
 		break;
@@ -112,13 +113,15 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
 				bool isOk = false;
 				// 创建聊天房间
 				if(roomPtr) {
-					RoomPB chatRoomPB;
 					chatRoomPB.ParseFromString(reqMsg);
+					chatRoomPB.set_gameroomid(roomPtr->id());
 					isOk = _clientChat.createRoom(&chatRoomPB, &errmsg);
 				}
 				if(!isOk) {
-					//!TODO 删除创建的房间
 					TLOG_DEBUG(errmsg);
+					if (roomPtr) {
+						ps->exitRoom(roomPtr->id());
+					}
 					header.rspcode = RspCode::ERROR;
 					rspBuffer->append(errmsg);
 				} else {	// 返回房间信息

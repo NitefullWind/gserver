@@ -15,7 +15,8 @@ Room::Room() :
 	_serverIP(""),
 	_serverPort(0),
 	_hasPassword(false),
-	_chatRoom()
+	_chatRoomID(0),
+	_gameRoomID(0)
 {
 }
 
@@ -37,6 +38,8 @@ void Room::setByRoomPB(const RoomPB& roomPB)
 	_password = roomPB.password();
 	_serverIP = roomPB.serverip();
 	_serverPort = roomPB.serverport();
+	_chatRoomID = roomPB.chatroomid();
+	_gameRoomID = roomPB.gameroomid();
 }
 
 void Room::toRoomPB(RoomPB& roomPB)
@@ -58,10 +61,11 @@ void Room::toRoomPB(RoomPB& roomPB)
 	}
 	roomPB.set_serverip(_serverIP);
 	roomPB.set_serverport(_serverPort);
-	if (_chatRoom.use_count() > 0) {
-		auto chatRoomPB = new RoomPB();
-		relatedRoom()->toRoomPB(*chatRoomPB);
-		roomPB.set_allocated_chatroom(chatRoomPB);
+	if (_chatRoomID != 0) {
+		roomPB.set_chatroomid(_chatRoomID);
+	}
+	if (_gameRoomID != 0) {
+		roomPB.set_gameroomid(_gameRoomID);
 	}
 }
 

@@ -52,8 +52,11 @@ namespace gserver
 		bool hasPassword() const { return _hasPassword; }
 		void setHasPassword(bool hasPassword) { _hasPassword = hasPassword; }
 
-		std::shared_ptr<Room> relatedRoom() const { return _chatRoom.lock(); }
-		void setRelatedRoom(const std::shared_ptr<Room>& relatedRoom) { _chatRoom = relatedRoom; }
+		uint32_t chatRoomID() const { return _chatRoomID; }
+		void setChatRoomID(uint32_t chatRoomID) { _chatRoomID = chatRoomID; }
+
+		uint32_t gameRoomID() const { return _gameRoomID; }
+		void setGameRoomID(uint32_t gameRoomID) { _gameRoomID = gameRoomID; }
 
 		/**
 		 * @brief 使用RoomPB设置room信息
@@ -96,7 +99,8 @@ namespace gserver
 		std::string _serverIP;									// 房间所在服务器ip
 		uint32_t _serverPort;									// 房间所在服务器端口
 		bool _hasPassword;										// 是否有密码
-		std::weak_ptr<Room> _chatRoom;							// 游戏房间的聊天房间
+		uint32_t _chatRoomID;									// 游戏房间的聊天房间id
+		uint32_t _gameRoomID;									// 聊天房间的游戏房间id
 	};
 }
 

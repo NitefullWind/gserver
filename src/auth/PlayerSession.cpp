@@ -73,7 +73,7 @@ std::shared_ptr<Room> PlayerSession::joinRoom(uint32_t roomId, std::string *errm
 		_roomPtrList.push_back(room);
 		room->addPlayer(shared_from_this());
 
-		TLOG_DEBUG("Player id: " << _playerPB.id() << ", name:" << _playerPB.name() << " joined room id: " << _playerPB.id() << ", name: " << _playerPB.name());
+		TLOG_DEBUG("Player id: " << _playerPB.id() << ", name:" << _playerPB.name() << " joined room id: " << roomId << ", name: " << _playerPB.name());
 		for(auto& p : room->players()) {
 			TLOG_DEBUG("===room player: " << p.lock()->playerPB().id());
 		}

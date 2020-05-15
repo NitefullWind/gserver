@@ -20,8 +20,13 @@ message RoomPB {
 	uint32 serverPort = 8;			// 房间所在服务器端口
 	bool hasPassword = 9;			// 是否有密码
 
-	// Game Server
-	RoomPB chatRoom = 10;			// 聊天房间，每个游戏房间拥有一个对应的聊天房间
+	// 关联房间id，只能设置一个
+	oneof relatedRoomID {
+		// Game Server
+		uint32 chatRoomID = 10;			// 聊天房间id，每个游戏房间拥有一个对应的聊天房间
+		// Chat Server
+		uint32 gameRoomID = 11;			// 游戏房间id，该聊天房间所属的游戏房间
+	}
 }
 
 message RoomPBList {

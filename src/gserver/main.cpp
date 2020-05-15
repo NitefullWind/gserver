@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 		return -1; 
 	}
 
-	Logger::SetLevel(Logger::Debug);
+	Logger::SetLevel(Logger::Trace);
 	
 	gserver::GServer gserver(8086);
 	gserver.start();
