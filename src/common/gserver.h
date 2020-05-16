@@ -7,17 +7,20 @@ namespace gserver
 {
 enum class Command : uint16_t
 {
-	INVILID = 0,
-	LOGIN = 1,
-	LOGOUT = 2,
-	CREATEROOM = 100,
-	UPDATEROOM = 101,
-	JOINROOM = 102,
-	EXITROOM = 103,
-	ROOMLIST = 104,
-	ROOMINFO = 105,
-	SENDMSG = 200,
-	RECVMSG = 201,
+	// 基础命令
+	INVILID = 0,			// 非法命令
+	LOGIN = 1,				// 登录
+	LOGOUT = 2,				// 登出
+	// 房间相关命令
+	CREATEROOM = 100,		// 创建房间
+	UPDATEROOM = 101,		// 更新房间
+	JOINROOM = 102,			// 加入房间
+	EXITROOM = 103,			// 退出房间
+	ROOMLIST = 104,			// 房间列表
+	ROOMINFO = 105,			// 房间信息
+	// 聊天相关命令
+	SENDMSG = 200,			// 发送消息
+	RECVMSG = 201,			// 接收消息
 };
 
 enum class RspCode : uint16_t
