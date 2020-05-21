@@ -21,6 +21,12 @@ enum class Command : uint16_t
 	// 聊天相关命令
 	SENDMSG = 200,			// 发送消息
 	RECVMSG = 201,			// 接收消息
+	// 游戏相关命令
+	READYGAME = 300,		// 准备游戏
+	LOADEDGAME,				// 加载完成
+	STARTGAME,				// 开始
+	PAUSEGAME,				// 暂停
+	QUITGAME,				// 退出
 };
 
 enum class RspCode : uint16_t

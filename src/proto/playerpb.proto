@@ -3,7 +3,30 @@ syntax = "proto3";
 package gserver.protobuf;
 
 message PlayerPB {
+	// 玩家的游戏状态
+	enum GameState {
+		GS_UNKNOWN = 0;
+		GS_INROOM = 1;				// 在房间中
+		GS_READY = 2;				// 就绪
+		GS_LOADING = 3;				// 加载中
+		GS_LOADED = 4;				// 加载完成
+		GS_GAMING = 5;				// 游戏中
+		GS_QUIT = 6;				// 已退出
+	}
+
+	message Point {
+		sint32 x = 1;
+		sint32 y = 2;
+	}
+
 	string id = 1;
 	string name = 2;
 	string password = 3;
+
+	GameState gameState = 4;
+	uint32 life = 5;
+	bool living = 6;
+	Point position = 7;
+	Point direction = 8; // (0, 1)上 (0, -1)下 (-1, 0)左 (1, 0)右
+	sint32 speed = 9;
 }

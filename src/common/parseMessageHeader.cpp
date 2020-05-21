@@ -5,6 +5,8 @@
 #include <tinyserver/logger.h>
 #include <tinyserver/tcp/tcpConnection.h>
 
+#include "../auth/PlayerSession.h"
+
 namespace gserver
 {
 void readHeaderFromBuffer(tinyserver::Buffer *buffer, MessageHeader& header)
@@ -83,6 +85,46 @@ void sendMessageToConnection(const std::shared_ptr<tinyserver::TcpConnection>& t
 {
 	MessageHeader header = {MessageHeaderFlag, cmd, reqid, static_cast<uint32_t>(data.length()), RspCode::SUCCESS, MessageHeaderVersion};
 	return sendMessageToConnection(tcpConnPtr, header, data);
+}
+
+
+bool sendMessageToPSPtr(const std::shared_ptr<gserver::PlayerSession>& playerPtr,
+						Command cmd, uint32_t reqid, const std::string& data, std::string *const errmsg)
+{
+	auto tcpPtr = playerPtr->tcpConnectionWeakPtr().lock();
+	if (!tcpPtr) {
+		if (errmsg) {
+			*errmsg = "TCP链接不存在";
+		}
+		return false;
+	} else {
+		sendMessageToConnection(tcpPtr, cmd, reqid, data);
+		return true;
+	}
+	return false;
+}
+
+bool sendMessageToPSWPtr(const std::weak_ptr<gserver::PlayerSession>& playerWPtr,
+						Command cmd, uint32_t reqid, const std::string& data, std::string *const errmsg)
+{
+	auto psPtr = playerWPtr.lock();
+	if (!psPtr) {
+		if (errmsg) {
+			*errmsg = "用户指针不存在";
+		}
+	} else {
+		auto tcpPtr = psPtr->tcpConnectionWeakPtr().lock();
+		if (!tcpPtr) {
+			if (errmsg) {
+				*errmsg = "用户TCP链接不存在";
+			}
+			return false;
+		} else {
+			sendMessageToConnection(tcpPtr, cmd, reqid, data);
+			return true;
+		}
+	}
+	return false;
 }
 
 }
