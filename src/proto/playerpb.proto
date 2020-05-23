@@ -27,6 +27,8 @@ message PlayerPB {
 	uint32 life = 5;
 	bool living = 6;
 	Point position = 7;
-	Point direction = 8; // (0, 1)上 (0, -1)下 (-1, 0)左 (1, 0)右
+	Point direction = 8; 		// (0, 1)上 (0, -1)下 (-1, 0)左 (1, 0)右
 	sint32 speed = 9;
+
+	uint32 gameRoomId = 10;		// 游戏房间id
 }

@@ -166,6 +166,15 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
             if(ps) {
                 RoomPB roompb;
                 roompb.ParseFromString(reqMsg);
+
+                if (!ps->RoomWeakPtrList().empty()) {
+                    errmsg = "玩家已在其他游戏房间中";
+                    TLOG_DEBUG(errmsg);
+                    header.rspcode = RspCode::ERROR;
+                    rspBuffer->append(errmsg);
+                    break;
+                }
+
                 auto roomPtr = ps->joinRoom(roompb.id(), &errmsg);
                 if(!roomPtr) {
                     TLOG_DEBUG(errmsg);
@@ -252,10 +261,13 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
                 // 更新玩家状态
                 ps->mutablePlayerPB()->set_gamestate(PlayerPB::GameState::PlayerPB_GameState_GS_READY);
 
-                RoomPB roompb;
-                roompb.ParseFromString(reqMsg);
-                
-                auto roomPtr = _userMgr.getRoomById(roompb.id());
+                if (ps->RoomWeakPtrList().empty()) {
+                    header.rspcode = RspCode::ERROR;
+                    rspBuffer->append("未加入任何房间");
+                    break;
+                }
+
+                auto roomPtr = ps->RoomWeakPtrList().front().lock();                
                 if(roomPtr) {
                     RoomPB retpb;
                     roomPtr->toRoomPB(retpb);
@@ -283,10 +295,13 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
                 // 更新玩家状态
                 ps->mutablePlayerPB()->set_gamestate(PlayerPB::GameState::PlayerPB_GameState_GS_LOADED);
 
-                RoomPB roompb;
-                roompb.ParseFromString(reqMsg);
-                
-                auto roomPtr = _userMgr.getRoomById(roompb.id());
+                if (ps->RoomWeakPtrList().empty()) {
+                    header.rspcode = RspCode::ERROR;
+                    rspBuffer->append("未加入任何房间");
+                    break;
+                }
+
+                auto roomPtr = ps->RoomWeakPtrList().front().lock();      
                 if(roomPtr) {
                     RoomPB retpb;
                     roomPtr->toRoomPB(retpb);
@@ -311,6 +326,20 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
         {
             auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
             if(ps) {
+                auto roomPtr = ps->RoomWeakPtrList().front().lock();      
+                if(roomPtr) {
+                    for (auto& player_wptr : roomPtr->players()) {
+                        auto playerPtr = player_wptr.lock();
+                        if (playerPtr) {
+                            playerPtr->mutablePlayerPB()->set_gamestate(PlayerPB::GameState::PlayerPB_GameState_GS_GAMING);
+                            sendMessageToPSWPtr(player_wptr, Command::STARTGAME, 0, "", &errmsg);
+                        }
+                    }
+                } else {
+                    header.rspcode = RspCode::ERROR;
+                    rspBuffer->append("房间不存在");
+                }
+
             } else {
                 header.rspcode = RspCode::ERROR;
                 rspBuffer->append(errmsg);
@@ -320,6 +349,15 @@ void GServer::processRequest(MessageHeader& header, const tinyserver::TcpConnect
         {
             auto ps = _userMgr.getLoggedPlayer(tcpConnPtr, &errmsg);
             if(ps) {
+                auto roomPtr = ps->RoomWeakPtrList().front().lock();      
+                if(roomPtr) {
+                    for (auto& player_wptr : roomPtr->players()) {
+                        sendMessageToPSWPtr(player_wptr, Command::PAUSEGAME, 0, "", &errmsg);
+                    }
+                } else {
+                    header.rspcode = RspCode::ERROR;
+                    rspBuffer->append("房间不存在");
+                }
             } else {
                 header.rspcode = RspCode::ERROR;
                 rspBuffer->append(errmsg);

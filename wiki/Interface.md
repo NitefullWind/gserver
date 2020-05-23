@@ -55,6 +55,12 @@ enum class Command : uint16_t
 	// 聊天相关命令
 	SENDMSG = 200,			// 发送消息
 	RECVMSG = 201,			// 接收消息
+	// 游戏相关命令
+	READYGAME = 300,		// 准备游戏
+	LOADEDGAME,				// 加载完成
+	STARTGAME,				// 开始
+	PAUSEGAME,				// 暂停
+	QUITGAME,				// 退出
 };
 ```
 注意：服务端和客户端共同使用这些命令，同一个命令既可能是请求命令，也可能是响应命令，跟具体命令的定义相关。比如对服务端来说，收到`ROOMINFO(105)`命令，代表着客户端想要查询房间信息，然后服务端会向该客户端返回一个`ROOMINFO(105)`命令，并带有房间信息的消息体，客户端收到该消息，意味着查询到了具体的房间信息。
@@ -71,6 +77,11 @@ enum class Command : uint16_t
 | ROOMLIST | 查询房间列表 | 无 | 返回房间列表 |
 | ROOMINFO | 查询房间信息 | 房间id | 返回指定的房间信息 |
 | SENDMSG | 发送消息 | 接收者、消息内容等 | 将聊天内容发送给指定的接收者 |
+| READYGAME | 玩家准备就绪 | 无 | 修改玩家状态，通知所有玩家玩家(房间)状态变更 |
+| LOADEDGAME | 玩家游戏加载完成 | 无 | 修改玩家状态，通知所有玩家玩家(房间)状态变更 |
+| STARTGAME | 开始游戏 | 无 | 修改玩家状态，通知所有玩家游戏开始 |
+| PAUSEGAME | 暂停游戏 | 无 | 修改玩家状态，通知所有玩家暂停游戏 |
+| QUITEGAME | 退出游戏 | 无 | 修改玩家状态 |
 
 ### 收的命令
 |  命令 | 功能 |
@@ -85,4 +96,7 @@ enum class Command : uint16_t
 | ROOMINFO | 查询房间信息请求应答 |
 | SENDMSG | 发送消息请求应答 |
 | RECVMSG | 收到消息 |
+| STARTGAME | 游戏开始 |
+| PAUSEGAME | 游戏暂停 |
+| QUITEGAME | 有玩家退出 |
 

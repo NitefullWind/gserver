@@ -28,7 +28,7 @@ namespace gserver
 		std::shared_ptr<PlayerSession> getLoggedPlayer(const tinyserver::TcpConnectionPtr& tcpConnPtr, std::string *errmsg);
 		std::shared_ptr<Room> createRoom();
 		std::shared_ptr<Room> getRoomById(uint32_t id);
-		std::map<uint32_t, std::shared_ptr<Room> > roomMap();
+		std::map<uint32_t, std::shared_ptr<Room> > roomMap();	// Fixme: not copy
 	private:
 		std::mutex _mutex;
 		std::atomic_uint32_t _roomIndex;
